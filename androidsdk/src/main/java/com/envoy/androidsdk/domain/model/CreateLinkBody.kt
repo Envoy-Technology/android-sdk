@@ -14,7 +14,7 @@ data class CreateLinkBody(
 )
 
 data class ContentSetting(
-    @SerializedName("content_type") val type: String,
+    @SerializedName("content_type") val type: ContentType,
     @SerializedName("content_name") val name: String,
     @SerializedName("content_description") val description: String,
     @SerializedName("common") val commonData: CommonData,
@@ -53,3 +53,7 @@ data class Label(
 data class Media(
     @SerializedName("media") val mediaData: CommonData,
 )
+
+enum class ContentType{
+    VIDEO, AUDIO
+}

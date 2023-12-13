@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.envoy.androidsdk.data.network.model.SdkConfig
 import com.envoy.androidsdk.domain.model.CommonData
 import com.envoy.androidsdk.domain.model.ContentSetting
+import com.envoy.androidsdk.domain.model.ContentType
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.shared.Failure
 import com.envoy.androidsdk.domain.shared.Loading
@@ -32,7 +33,7 @@ class MainViewModel : ViewModel() {
             EnvoyApiProviderImpl.provide().createLink(
                 body = CreateLinkBody(
                     contentSetting = ContentSetting(
-                        type = "VIDEO",
+                        type = ContentType.VIDEO,
                         name = "Content name",
                         description = "content description",
                         commonData = CommonData(
