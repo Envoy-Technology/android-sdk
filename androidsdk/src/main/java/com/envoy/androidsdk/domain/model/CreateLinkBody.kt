@@ -3,34 +3,34 @@ package com.envoy.androidsdk.domain.model
 import com.google.gson.annotations.SerializedName
 
 data class CreateLinkBody(
-    @SerializedName("autoplay") val autoPlay: Boolean,
+    @SerializedName("autoplay") val autoPlay: Boolean = false,
     @SerializedName("content_setting") val contentSetting: ContentSetting,
-    @SerializedName("lifespan_after_click") val lifespanClick: LifespanClick,
-    @SerializedName("open_quota") val openQuota: Int,
-    @SerializedName("title") val title: String,
+    @SerializedName("lifespan_after_click") val lifespanClick: LifespanClick? = null,
+    @SerializedName("open_quota") val openQuota: Int? = null,
+    @SerializedName("title") val title: String? = null,
     @SerializedName("sharer_id") val sharerId: String,
-    @SerializedName("is_sandbox") val isSandbox: Boolean,
-    @SerializedName("labels") val labels: List<Label>,
+    @SerializedName("is_sandbox") val isSandbox: Boolean = false,
+    @SerializedName("labels") val labels: List<Label>? = null,
 )
 
 data class ContentSetting(
-    @SerializedName("content_type") val type: String?,
-    @SerializedName("content_name") val name: String?,
-    @SerializedName("content_description") val description: String?,
+    @SerializedName("content_type") val type: String,
+    @SerializedName("content_name") val name: String,
+    @SerializedName("content_description") val description: String,
     @SerializedName("common") val commonData: CommonData,
-    @SerializedName("time_limit") val timeLimit: Int?,
-    @SerializedName("time_start") val timeStart: Int?,
-    @SerializedName("available_from") val availableFrom: String?,
-    @SerializedName("available_to") val availableTo: String?,
-    @SerializedName("video_orientation") val videoOrientation: Int?,
-    @SerializedName("preview_title") val previewTitle: String?,
-    @SerializedName("preview_description") val previewOrientation: String?,
-    @SerializedName("preview_image") val previewImage: String?,
-    @SerializedName("is_sandbox") val isSandbox: Boolean,
-    @SerializedName("mandatory_email") val isEmailMandatory: Boolean,
-    @SerializedName("modal_title") val modalTitle: String?,
-    @SerializedName("button_text") val buttonText: String?,
-    @SerializedName("content_protection") val contentProtection: CommonData,
+    @SerializedName("time_limit") val timeLimit: Int? = null,
+    @SerializedName("time_start") val timeStart: Int? = null,
+    @SerializedName("available_from") val availableFrom: String? = null,
+    @SerializedName("available_to") val availableTo: String? = null,
+    @SerializedName("video_orientation") val videoOrientation: Int? = null,
+    @SerializedName("preview_title") val previewTitle: String? = null,
+    @SerializedName("preview_description") val previewOrientation: String? = null,
+    @SerializedName("preview_image") val previewImage: String? = null,
+    @SerializedName("is_sandbox") val isSandbox: Boolean = false,
+    @SerializedName("mandatory_email") val isEmailMandatory: Boolean = false,
+    @SerializedName("modal_title") val modalTitle: String? = null,
+    @SerializedName("button_text") val buttonText: String? = null,
+    @SerializedName("content_protection") val contentProtection: Media? = null,
 )
 
 data class CommonData(
@@ -48,4 +48,8 @@ data class Label(
     @SerializedName("id") val value: Int?,
     @SerializedName("text") val text: String?,
     @SerializedName("color") val color: String?,
+)
+
+data class Media(
+    @SerializedName("media") val mediaData: CommonData,
 )

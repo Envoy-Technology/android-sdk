@@ -30,6 +30,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     override fun init(sdkConfig: SdkConfig, coroutineContext: CoroutineContext) {
         if (!isInitialized.value) {
             if (sdkConfig.apiKey.isEmpty() || sdkConfig.baseUrl.isEmpty()) {
+                // think to validate the api key
                 throw InitException("Envoy SDK initialisation exception: Please provide valid apiKey")
             }
             retrofitFactory = RetrofitFactoryImpl()
@@ -47,6 +48,10 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     }
 
     override fun provide(): EnvoyApi {
+        if (!isInitialized.value) {
+            throw InitException("Envoy SDK is not initialized")
+        }
+
         return if (envoyApi == null) {
             envoyApi = EnvoyApiImpl(createLinkUseCase)
             envoyApi as EnvoyApi
