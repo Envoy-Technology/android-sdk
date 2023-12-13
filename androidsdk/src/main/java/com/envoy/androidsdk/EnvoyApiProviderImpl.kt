@@ -30,7 +30,6 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     override fun init(sdkConfig: SdkConfig, coroutineContext: CoroutineContext) {
         if (!isInitialized.value) {
             if (sdkConfig.apiKey.isEmpty() || sdkConfig.baseUrl.isEmpty()) {
-                // think to validate the api key
                 throw InitException("Envoy SDK initialisation exception: Please provide valid apiKey")
             }
             retrofitFactory = RetrofitFactoryImpl()
