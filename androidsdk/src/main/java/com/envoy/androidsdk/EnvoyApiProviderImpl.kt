@@ -33,6 +33,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                 throw InitException("Envoy SDK initialisation exception: Please provide valid apiKey")
             }
             retrofitFactory = RetrofitFactoryImpl()
+            retrofitFactory.setConfiguration(sdkConfig)
             this.coroutineContext = coroutineContext
             repository = EnvoyRepositoryImpl(
                 api = retrofitFactory.getInstance(EnvoyServiceApi::class.java),

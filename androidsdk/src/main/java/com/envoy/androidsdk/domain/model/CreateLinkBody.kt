@@ -7,7 +7,6 @@ data class CreateLinkBody(
     @SerializedName("content_setting") val contentSetting: ContentSetting,
     @SerializedName("lifespan_after_click") val lifespanClick: LifespanClick,
     @SerializedName("open_quota") val openQuota: Int,
-    @SerializedName("extra") val extra: String,
     @SerializedName("title") val title: String,
     @SerializedName("sharer_id") val sharerId: String,
     @SerializedName("is_sandbox") val isSandbox: Boolean,
