@@ -60,7 +60,8 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
         return if (envoyApi == null) {
             envoyApi = EnvoyApiImpl(
                 createLinkUseCase = useCaseFactory.getCreateLinkUseCase(),
-                createSandboxLinkUseCase = useCaseFactory.getCreateSandboxLinkUseCase()
+                createSandboxLinkUseCase = useCaseFactory.getCreateSandboxLinkUseCase(),
+                getUserQuotaUseCase = useCaseFactory.getUserQuotaUseCase()
             )
             envoyApi as EnvoyApi
         } else {

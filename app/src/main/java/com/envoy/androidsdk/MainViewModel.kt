@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val TAG = MainViewModel::class.java.name
+private const val USER_ID = "12345"
 
 class MainViewModel : ViewModel() {
 
@@ -24,7 +25,6 @@ class MainViewModel : ViewModel() {
                 baseUrl = "https://dev-api.envoy.is/partner/",
                 apiKey = "3UuCg2FdPX2ifbnLMrOtG5qoTgYGFAha4ylWpZMu"
             ),
-            coroutineContext = Dispatchers.IO
         )
     }
 
@@ -41,6 +41,13 @@ class MainViewModel : ViewModel() {
             ButtonState(
                 text = "Get Sandbox Link",
                 onClick = { getSandboxLink() }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Get User Quota",
+                onClick = { getUserQuota() }
             )
         )
         return list
@@ -60,7 +67,7 @@ class MainViewModel : ViewModel() {
                             poster = "example.com/image_url"
                         ),
                     ),
-                    sharerId = "17234"
+                    sharerId = USER_ID
                 )
             ).collect { resource ->
                 when (resource) {
@@ -94,7 +101,7 @@ class MainViewModel : ViewModel() {
                             poster = "example.com/image_url"
                         ),
                     ),
-                    sharerId = "17234"
+                    sharerId = USER_ID
                 )
             ).collect { resource ->
                 when (resource) {
@@ -108,6 +115,28 @@ class MainViewModel : ViewModel() {
 
                     is Failure -> {
                         Log.d(TAG, "Sandbox link: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getUserQuota() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().getUserQuota(
+                userId = USER_ID
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "User quota: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "User quota: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "User quota: Failure -> ${resource.throwable.message}")
                     }
                 }
             }

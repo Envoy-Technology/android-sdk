@@ -4,6 +4,7 @@ import com.envoy.androidsdk.domain.EnvoyRepository
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreateSandboxLinkResponse
+import com.envoy.androidsdk.domain.model.UserQuotaResponse
 import com.envoy.androidsdk.domain.shared.Resource
 import com.envoy.androidsdk.domain.shared.performRequest
 import kotlin.coroutines.CoroutineContext
@@ -26,6 +27,15 @@ internal class EnvoyRepositoryImpl(
         return performRequest(
             {
                 api.createSandboxLink(body = body)
+            },
+            coroutineContext,
+        )
+    }
+
+    override fun getUserQuota(userId: String): Flow<Resource<UserQuotaResponse>> {
+        return performRequest(
+            {
+                api.getUserQuota(userId = userId)
             },
             coroutineContext,
         )
