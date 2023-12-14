@@ -23,7 +23,7 @@ class MainViewModel : ViewModel() {
         EnvoyApiProviderImpl.init(
             sdkConfig = SdkConfig(
                 baseUrl = "https://dev-api.envoy.is/partner/",
-                apiKey = "3UuCg2FdPX2ifbnLMrOtG5qoTgYGFAha4ylWpZMu"
+                apiKey = "api_key"
             ),
         )
     }
