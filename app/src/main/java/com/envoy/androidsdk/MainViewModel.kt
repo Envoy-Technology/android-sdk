@@ -11,7 +11,6 @@ import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.shared.Failure
 import com.envoy.androidsdk.domain.shared.Loading
 import com.envoy.androidsdk.domain.shared.Success
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 private val TAG = MainViewModel::class.java.name
