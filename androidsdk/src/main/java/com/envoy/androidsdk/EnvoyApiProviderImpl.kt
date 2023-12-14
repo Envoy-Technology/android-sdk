@@ -10,8 +10,7 @@ import com.envoy.androidsdk.data.network.RetrofitFactoryImpl
 import com.envoy.androidsdk.data.network.model.SdkConfig
 import com.envoy.androidsdk.domain.EnvoyRepository
 import com.envoy.androidsdk.domain.shared.InitException
-import com.envoy.androidsdk.domain.usecase.CreateLinkUseCase
-import com.envoy.androidsdk.domain.usecase.CreateLinkUseCaseImpl
+import com.envoy.androidsdk.domain.usecase.UseCaseFactory
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 
@@ -24,7 +23,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     private lateinit var retrofitFactory: RetrofitFactory
     private lateinit var coroutineContext: CoroutineContext
     private lateinit var repository: EnvoyRepository
-    private lateinit var createLinkUseCase: CreateLinkUseCase
+    private lateinit var useCaseFactory: UseCaseFactory
 
     private val isInitialized = MutableStateFlow(false)
     override fun init(sdkConfig: SdkConfig, coroutineContext: CoroutineContext) {
@@ -34,12 +33,15 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
             }
             retrofitFactory = RetrofitFactoryImpl()
             retrofitFactory.setConfiguration(sdkConfig)
+
             this.coroutineContext = coroutineContext
+
             repository = EnvoyRepositoryImpl(
                 api = retrofitFactory.getInstance(EnvoyServiceApi::class.java),
                 coroutineContext = EnvoyApiProviderImpl.coroutineContext
             )
-            createLinkUseCase = CreateLinkUseCaseImpl(repository)
+
+            useCaseFactory = UseCaseFactory(repository)
             isInitialized.value = true
         } else {
             Log.w(TAG, "Envoy SDK is already initialized")
@@ -52,7 +54,11 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
         }
 
         return if (envoyApi == null) {
-            envoyApi = EnvoyApiImpl(createLinkUseCase)
+            envoyApi = EnvoyApiImpl(
+                createLinkUseCase = useCaseFactory.getCreateLinkUseCase(),
+                createSandboxLinkUseCase = useCaseFactory.getCreateSandboxLinkUseCase(),
+                getUserQuotaUseCase = useCaseFactory.getUserQuotaUseCase()
+            )
             envoyApi as EnvoyApi
         } else {
             envoyApi as EnvoyApi

@@ -7,6 +7,7 @@ data class CreateLinkBody(
     @SerializedName("content_setting") val contentSetting: ContentSetting,
     @SerializedName("lifespan_after_click") val lifespanClick: LifespanClick? = null,
     @SerializedName("open_quota") val openQuota: Int? = null,
+    @SerializedName("extra") val extra: String? = null,
     @SerializedName("title") val title: String? = null,
     @SerializedName("sharer_id") val sharerId: String,
     @SerializedName("is_sandbox") val isSandbox: Boolean = false,
@@ -54,6 +55,10 @@ data class Media(
     @SerializedName("media") val mediaData: CommonData,
 )
 
-enum class ContentType{
-    VIDEO, AUDIO
+enum class ContentType {
+    VIDEO,
+    AUDIO,
+    HTML_PLAIN,
+    HTML_SOURCE,
+    SCREENSHOT
 }
