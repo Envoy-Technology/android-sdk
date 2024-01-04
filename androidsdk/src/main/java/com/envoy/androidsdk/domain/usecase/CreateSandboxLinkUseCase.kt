@@ -16,5 +16,4 @@ internal class CreateSandboxLinkUseCaseImpl(
     override fun invoke(body: CreateLinkBody): Flow<Resource<CreateSandboxLinkResponse>> {
         return repository.createSandboxLink(body = body)
     }
-
 }

@@ -3,11 +3,13 @@ package com.envoy.androidsdk
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.envoy.androidsdk.data.network.model.SdkConfig
+import com.envoy.androidsdk.domain.model.ClaimUserRewardBody
 import com.envoy.androidsdk.domain.model.CommonData
 import com.envoy.androidsdk.domain.model.ContentSetting
 import com.envoy.androidsdk.domain.model.ContentType
 import com.envoy.androidsdk.domain.model.CreateLinkBody
+import com.envoy.androidsdk.domain.model.CreatePixelEventBody
+import com.envoy.androidsdk.domain.model.EventName
 import com.envoy.androidsdk.domain.shared.Failure
 import com.envoy.androidsdk.domain.shared.Loading
 import com.envoy.androidsdk.domain.shared.Success
@@ -15,17 +17,9 @@ import kotlinx.coroutines.launch
 
 private val TAG = MainViewModel::class.java.name
 private const val USER_ID = "12345"
+private const val PAYPAL_RECEIVER_EMAIL = "example@example.com"
 
 class MainViewModel : ViewModel() {
-
-    init {
-        EnvoyApiProviderImpl.init(
-            sdkConfig = SdkConfig(
-                baseUrl = "https://dev-api.envoy.is/partner/",
-                apiKey = "api_key"
-            ),
-        )
-    }
 
     fun getButtonsState(): List<ButtonState> {
         val list = mutableListOf<ButtonState>()
@@ -49,6 +43,35 @@ class MainViewModel : ViewModel() {
                 onClick = { getUserQuota() }
             )
         )
+
+        list.add(
+            ButtonState(
+                text = "Create Pixel Event",
+                onClick = { getPixelEvent() }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Get User Rewards",
+                onClick = { getUserRewards() }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Claim User Reward",
+                onClick = { claimUserReward() }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Get User Current Rewards",
+                onClick = { getUserCurrentRewards() }
+            )
+        )
+
         return list
     }
 
@@ -136,6 +159,99 @@ class MainViewModel : ViewModel() {
 
                     is Failure -> {
                         Log.d(TAG, "User quota: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getPixelEvent() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().createPixelEvent(
+                body = CreatePixelEventBody(
+                    eventName = EventName.app_downloaded.name
+                )
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Pixel Event: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Pixel Event: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Pixel Event: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getUserRewards() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().getUserReward(
+                userId = USER_ID
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "User rewards: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "User rewards: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "User rewards: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun claimUserReward() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().claimUserReward(
+                body = ClaimUserRewardBody(
+                    userId = USER_ID,
+                    paypalReceiver = PAYPAL_RECEIVER_EMAIL
+                )
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Claim user reward: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Claim user reward: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Claim user reward: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getUserCurrentRewards() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().getUserCurrentRewards(
+                userId = USER_ID
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "User current rewards: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "User current rewards: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "User current rewards: Failure -> ${resource.throwable.message}")
                     }
                 }
             }

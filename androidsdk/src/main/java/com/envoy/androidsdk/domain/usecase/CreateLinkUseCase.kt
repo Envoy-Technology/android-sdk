@@ -17,5 +17,4 @@ internal class CreateLinkUseCaseImpl(
     override fun invoke(body: CreateLinkBody): Flow<Resource<CreateLinkResponse>> {
         return repository.createLink(body = body)
     }
-
 }
