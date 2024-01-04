@@ -11,7 +11,7 @@ data class CreateLinkBody(
     @SerializedName("title") val title: String? = null,
     @SerializedName("sharer_id") val sharerId: String,
     @SerializedName("is_sandbox") val isSandbox: Boolean = false,
-    @SerializedName("labels") val labels: List<Label>? = null,
+    @SerializedName("labels") val labels: List<Label>? = null
 )
 
 data class ContentSetting(
@@ -31,28 +31,28 @@ data class ContentSetting(
     @SerializedName("mandatory_email") val isEmailMandatory: Boolean = false,
     @SerializedName("modal_title") val modalTitle: String? = null,
     @SerializedName("button_text") val buttonText: String? = null,
-    @SerializedName("content_protection") val contentProtection: Media? = null,
+    @SerializedName("content_protection") val contentProtection: Media? = null
 )
 
 data class CommonData(
     @SerializedName("source") val source: String?,
     @SerializedName("source_is_redirect") val isRedirect: Boolean,
-    @SerializedName("poster") val poster: String?,
+    @SerializedName("poster") val poster: String?
 )
 
 data class LifespanClick(
     @SerializedName("value") val value: Int?,
-    @SerializedName("unit") val unit: String?,
+    @SerializedName("unit") val unit: String?
 )
 
 data class Label(
     @SerializedName("id") val value: Int?,
     @SerializedName("text") val text: String?,
-    @SerializedName("color") val color: String?,
+    @SerializedName("color") val color: String?
 )
 
 data class Media(
-    @SerializedName("media") val mediaData: CommonData,
+    @SerializedName("media") val mediaData: CommonData
 )
 
 enum class ContentType {

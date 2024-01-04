@@ -3,12 +3,12 @@ package com.envoy.androidsdk.domain.shared
 import com.google.gson.Gson
 import com.google.gson.JsonParseException
 import com.google.gson.JsonSyntaxException
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import okhttp3.ResponseBody
 import retrofit2.Response
+import kotlin.coroutines.CoroutineContext
 
 private const val GENERIC_SERVER_ERROR = "Something went wrong, please try again."
 private const val PARSING_SERVER_ERROR = "The response could not be parsed"
@@ -27,7 +27,7 @@ internal fun ResponseBody.getParsedError(): String =
 @Suppress("TooGenericExceptionCaught")
 internal fun <T> performRequest(
     block: suspend () -> Response<T>,
-    coroutineContext: CoroutineContext,
+    coroutineContext: CoroutineContext
 ): Flow<Resource<T>> = flow<Resource<T>> {
     emit(Loading())
     try {
@@ -35,7 +35,7 @@ internal fun <T> performRequest(
         response.body()?.let {
             emit(Success(it))
         } ?: run {
-            emit(Failure(Throwable(message = response.errorBody()?.getParsedError() ?: "")))
+            emit(Failure(Throwable(message = response.errorBody()?.getParsedError() ?: "Empty body")))
         }
     } catch (ex: Exception) {
         emit(Failure(ex))

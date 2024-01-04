@@ -2,19 +2,18 @@ package com.envoy.androidsdk.data.network
 
 import com.envoy.androidsdk.data.network.model.SdkConfig
 import com.google.gson.GsonBuilder
-import java.util.concurrent.TimeUnit
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 private const val TIMEOUT = 30L
 private const val AUTHORIZATION = "x-api-key"
 
 internal class RetrofitFactoryImpl : RetrofitFactory {
-
 
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
@@ -53,6 +52,5 @@ internal class RetrofitFactoryImpl : RetrofitFactory {
             requestBuilder.addHeader(AUTHORIZATION, config.apiKey)
             return chain.proceed(requestBuilder.build())
         }
-
     }
 }

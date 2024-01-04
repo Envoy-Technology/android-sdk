@@ -9,5 +9,5 @@ data class ApiError(
 data class ApiErrorData(
     @SerializedName("msg") val message: String = "",
     @SerializedName("type") val type: String = "",
-    @SerializedName("loc") val errors: List<String>?,
+    @SerializedName("loc") val errors: List<String>?
 )

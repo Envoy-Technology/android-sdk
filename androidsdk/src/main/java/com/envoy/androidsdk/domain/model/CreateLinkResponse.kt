@@ -7,5 +7,5 @@ data class CreateLinkResponse(
     @SerializedName("user_remaining_quota") val remainingQuota: Int?,
     @SerializedName("mandatory_email") val isEmailMandatory: Boolean,
     @SerializedName("modal_title") val modalTitle: String?,
-    @SerializedName("button_text") val buttonText: String?,
+    @SerializedName("button_text") val buttonText: String?
 )

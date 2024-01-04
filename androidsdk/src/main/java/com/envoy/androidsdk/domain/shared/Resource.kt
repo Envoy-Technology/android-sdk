@@ -38,26 +38,3 @@ class Failure<out T>(val throwable: Throwable) : Resource<T>() {
         return throwable.hashCode()
     }
 }
-
-fun <T, U> Resource<T>.map(transform: (T) -> U): Resource<U> {
-    return when (this) {
-        is Success -> Success(value = transform(value))
-        is Failure -> Failure(throwable = throwable)
-        is Loading -> Loading()
-    }
-}
-
-inline fun <T> Resource<T>.onSuccess(block: (T) -> Unit): Resource<T> =
-    apply {
-        if (this is Success<T>) block(value)
-    }
-
-inline fun <T> Resource<T>.onFailure(block: (Throwable) -> Unit): Resource<T> =
-    apply {
-        if (this is Failure<T>) block(throwable)
-    }
-
-inline fun <T> Resource<T>.onLoading(block: () -> Unit): Resource<T> =
-    apply {
-        if (this is Loading<T>) block()
-    }
