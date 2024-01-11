@@ -3,26 +3,39 @@
 
 Envoy Android SDK aimed to deliver a fast solution to share content out of your Android Application.
 
-# Quick Start Guide
+## Add Envoy SDK to Your Application
 
 ### Requirements
 * minSdkVersion: 26 (Android 8.0)
 * compileSdkVersion: 34 (Android 13)
 
-## Add Envoy SDK to Your Application
+### Integration
 
-The following permission is used in the Envoy library. You should include them in the Android manifest:
-
-```
-<uses-permission android:name="android.permission.INTERNET" />
+In your project's settings.gradle, add the code snipet below:
+```gradle
+dependencyResolutionManagement {
+		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+		repositories {
+			mavenCentral()
+			maven { url 'https://jitpack.io' }
+		}
+	}
 ```
 
 In the app module's build.gradle, besides whatever other dependencies you already have, include such an "implementation" line:
 
 ```gradle
 dependencies {
-    implementation 'envoy:1.0.0' // replace "1.0.0" with the version you want to include
+    implementation 'com.github.Envoy-Technology:android-sdk:1.0.4' // replace "1.0.4" with the version you want to include
 }
+```
+
+### Android manifest
+
+The following permission is used in the Envoy library. You should include them in the Android manifest:
+
+```
+<uses-permission android:name="android.permission.INTERNET" />
 ```
 
 
@@ -64,7 +77,7 @@ data class ContentSetting(
     @SerializedName("time_start") val timeStart: Int? = null,
     @SerializedName("available_from") val availableFrom: String? = null,
     @SerializedName("available_to") val availableTo: String? = null,
-    @SerializedName("video_orientation") val videoOrientation: Int? = null,
+    @SerializedName("video_orientation") val videoOrientation: VideoOrientation,
     @SerializedName("preview_title") val previewTitle: String? = null,
     @SerializedName("preview_description") val previewOrientation: String? = null,
     @SerializedName("preview_image") val previewImage: String? = null,
@@ -114,10 +127,11 @@ viewModelScope.launch {
                         name = "Content name",
                         description = "content description",
                         commonData = CommonData(
-                            source = "example.com/media_url",
+                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                             isRedirect = false,
-                            poster = "example.com/image_url"
+                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
                         ),
+                        videoOrientation = VideoOrientation.vertical
                     ),
                     sharerId = "user_id"
                 )
@@ -152,10 +166,11 @@ viewModelScope.launch {
                         name = "Content name",
                         description = "content description",
                         commonData = CommonData(
-                            source = "example.com/media_url",
+                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                             isRedirect = false,
-                            poster = "example.com/image_url"
+                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                         ),
+                        videoOrientation = VideoOrientation.vertical
                     ),
                     sharerId = "user_id"
                 )
@@ -285,8 +300,7 @@ viewModelScope.launch {
 viewModelScope.launch {
             EnvoyApiProviderImpl.provide().claimUserReward(
                 body = ClaimUserRewardBody(
-                    userId = "user_id",
-                    paypalReceiver = "paypal_receiver_email"
+                    userId = "user_id"
                 )
             ).collect { resource ->
                 when (resource) {
@@ -306,7 +320,7 @@ viewModelScope.launch {
         }
 ```
 
-### Claim user reward
+### Get current user reward
 
 Get current rewards for a specific user
 
