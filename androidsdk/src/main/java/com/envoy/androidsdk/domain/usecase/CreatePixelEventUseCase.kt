@@ -17,7 +17,8 @@ internal class CreatePixelEventUseCaseImpl(
 
     override fun invoke(body: CreatePixelEventBody): Flow<Resource<Unit>> {
         val newBody = body.copy(
-            shareLinkHash = hawkRepository.getHash()
+            shareLinkHash = hawkRepository.getHash(),
+            leadUuid = hawkRepository.getLeadUiid()
         )
         return repository.createPixelEvent(body = newBody)
     }
