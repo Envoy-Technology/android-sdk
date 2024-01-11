@@ -2,6 +2,7 @@ package com.envoy.androidsdk
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.net.Uri
 import android.os.CountDownTimer
 import android.util.Log
 import com.envoy.androidsdk.api.EnvoyApi
@@ -22,7 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.coroutines.CoroutineContext
 
 private val TAG = EnvoyApiProviderImpl::class.java.name
-private const val LINK_BASE = "envoy.is"
+private const val SHARER_HASH = "envoy_share_link_hash"
+private const val LEAD_UUID = "envoy_lead_uuid"
 private const val ONE_SECOND = 1000L
 private const val CLIP_BOARD_TIMER = 5000L // 5 seconds
 
@@ -46,9 +48,9 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
         if (!isInitialized.value) {
             val sdkConfig = SdkConfig(
                 // for testing
-//                baseUrl = "https://dev-api.envoy.is/partner/",
+                baseUrl = "https://dev-api.envoy.is/partner/",
                 // for release
-                baseUrl = "https://api.envoy.is/partner/",
+//                baseUrl = "https://api.envoy.is/partner/",
                 apiKey = apiKey
             )
             if (sdkConfig.apiKey.isEmpty() || sdkConfig.baseUrl.isEmpty()) {
@@ -81,8 +83,15 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                     val clipBoardManager =
                         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val copiedString = clipBoardManager.primaryClip?.getItemAt(0)?.text?.toString()
-                    if (copiedString?.contains(LINK_BASE) == true && hawkRepository.getHash() == null) {
-                        hawkRepository.setHash(copiedString.split("/").last())
+                    if (hawkRepository.getHash() == null && copiedString?.contains(SHARER_HASH) == true) {
+                        val uri = Uri.parse(copiedString)
+                        val hash = uri.getQueryParameters(SHARER_HASH).first()
+                        hawkRepository.setHash(hash)
+                        if (copiedString.contains(LEAD_UUID)) {
+                            val leadUuid = uri.getQueryParameters(LEAD_UUID).first()
+                            hawkRepository.setLeadUiid(leadUuid)
+                        }
+
                     }
                 }
             }

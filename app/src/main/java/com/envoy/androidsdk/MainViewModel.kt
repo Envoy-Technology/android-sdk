@@ -10,14 +10,14 @@ import com.envoy.androidsdk.domain.model.ContentType
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
 import com.envoy.androidsdk.domain.model.EventName
+import com.envoy.androidsdk.domain.model.VideoOrientation
 import com.envoy.androidsdk.domain.shared.Failure
 import com.envoy.androidsdk.domain.shared.Loading
 import com.envoy.androidsdk.domain.shared.Success
 import kotlinx.coroutines.launch
 
 private val TAG = MainViewModel::class.java.name
-private const val USER_ID = "12345"
-private const val PAYPAL_RECEIVER_EMAIL = "example@example.com"
+private const val USER_ID = "123456"
 
 class MainViewModel : ViewModel() {
 
@@ -46,7 +46,35 @@ class MainViewModel : ViewModel() {
 
         list.add(
             ButtonState(
-                text = "Create Pixel Event",
+                text = "Create Pixel Event - App download",
+                onClick = { getPixelEvent(EventName.app_downloaded.name) }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Create Pixel Event - Account created",
+                onClick = { getPixelEvent(EventName.account_created.name) }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Create Pixel Event - Payment success",
+                onClick = { getPixelEvent(EventName.payment_success.name) }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Create Pixel Event - Trial activated",
+                onClick = { getPixelEvent(EventName.trial_activated.name) }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Create Pixel Event - custom event",
                 onClick = { getPixelEvent() }
             )
         )
@@ -80,14 +108,15 @@ class MainViewModel : ViewModel() {
             EnvoyApiProviderImpl.provide().createLink(
                 body = CreateLinkBody(
                     contentSetting = ContentSetting(
-                        type = ContentType.VIDEO,
+                        type = ContentType.HTML_PLAIN,
                         name = "Content name",
                         description = "content description",
                         commonData = CommonData(
-                            source = "example.com/media_url",
+                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                             isRedirect = false,
-                            poster = "example.com/image_url"
+                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
                         ),
+                        videoOrientation = VideoOrientation.vertical
                     ),
                     sharerId = USER_ID
                 )
@@ -122,6 +151,7 @@ class MainViewModel : ViewModel() {
                             isRedirect = false,
                             poster = "example.com/image_url"
                         ),
+                        videoOrientation = VideoOrientation.vertical
                     ),
                     sharerId = USER_ID
                 )
@@ -165,11 +195,11 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private fun getPixelEvent() {
+    private fun getPixelEvent(pixelEvent: String? = null) {
         viewModelScope.launch {
             EnvoyApiProviderImpl.provide().createPixelEvent(
                 body = CreatePixelEventBody(
-                    eventName = EventName.app_downloaded.name
+                    eventName = pixelEvent ?: "androidCustomEvent"
                 )
             ).collect { resource ->
                 when (resource) {
@@ -215,8 +245,7 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             EnvoyApiProviderImpl.provide().claimUserReward(
                 body = ClaimUserRewardBody(
-                    userId = USER_ID,
-                    paypalReceiver = PAYPAL_RECEIVER_EMAIL
+                    userId = USER_ID
                 )
             ).collect { resource ->
                 when (resource) {

@@ -23,12 +23,12 @@ data class ContentSetting(
     @SerializedName("time_start") val timeStart: Int? = null,
     @SerializedName("available_from") val availableFrom: String? = null,
     @SerializedName("available_to") val availableTo: String? = null,
-    @SerializedName("video_orientation") val videoOrientation: Int? = null,
+    @SerializedName("video_orientation") val videoOrientation: VideoOrientation,
     @SerializedName("preview_title") val previewTitle: String? = null,
     @SerializedName("preview_description") val previewOrientation: String? = null,
     @SerializedName("preview_image") val previewImage: String? = null,
-    @SerializedName("is_sandbox") val isSandbox: Boolean = false,
-    @SerializedName("mandatory_email") val isEmailMandatory: Boolean = false,
+    @SerializedName("is_sandbox") val isSandbox: Boolean? = false,
+    @SerializedName("mandatory_email") val isEmailMandatory: Boolean? = false,
     @SerializedName("modal_title") val modalTitle: String? = null,
     @SerializedName("button_text") val buttonText: String? = null,
     @SerializedName("content_protection") val contentProtection: Media? = null
@@ -36,7 +36,7 @@ data class ContentSetting(
 
 data class CommonData(
     @SerializedName("source") val source: String?,
-    @SerializedName("source_is_redirect") val isRedirect: Boolean,
+    @SerializedName("source_is_redirect") val isRedirect: Boolean?,
     @SerializedName("poster") val poster: String?
 )
 
@@ -62,3 +62,9 @@ enum class ContentType {
     HTML_SOURCE,
     SCREENSHOT
 }
+
+enum class VideoOrientation {
+    vertical,
+    horizontal
+}
+
