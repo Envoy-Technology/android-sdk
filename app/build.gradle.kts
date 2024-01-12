@@ -67,6 +67,6 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-//    implementation("com.envoy:android-sdk:1.0.0")
+//    implementation("com.github.Envoy-Technology:android-sdk:1.0.4")
     implementation(project(":androidsdk"))
 }

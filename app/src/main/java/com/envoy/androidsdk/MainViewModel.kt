@@ -147,9 +147,9 @@ class MainViewModel : ViewModel() {
                         name = "Content name",
                         description = "content description",
                         commonData = CommonData(
-                            source = "example.com/media_url",
+                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                             isRedirect = false,
-                            poster = "example.com/image_url"
+                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                         ),
                         videoOrientation = VideoOrientation.vertical
                     ),
