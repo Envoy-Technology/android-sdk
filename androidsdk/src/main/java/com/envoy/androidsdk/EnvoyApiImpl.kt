@@ -6,7 +6,6 @@ import com.envoy.androidsdk.domain.model.ClaimUserRewardResponse
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
-import com.envoy.androidsdk.domain.model.CreateSandboxLinkResponse
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
@@ -14,7 +13,6 @@ import com.envoy.androidsdk.domain.shared.Resource
 import com.envoy.androidsdk.domain.usecase.ClaimUserRewardUseCase
 import com.envoy.androidsdk.domain.usecase.CreateLinkUseCase
 import com.envoy.androidsdk.domain.usecase.CreatePixelEventUseCase
-import com.envoy.androidsdk.domain.usecase.CreateSandboxLinkUseCase
 import com.envoy.androidsdk.domain.usecase.GetUserQuotaUseCase
 import com.envoy.androidsdk.domain.usecase.GetUserRewardsUseCase
 import com.envoy.androidsdk.domain.usecase.GetCurrentRewardsUseCase
@@ -22,7 +20,6 @@ import kotlinx.coroutines.flow.Flow
 
 internal class EnvoyApiImpl(
     private val createLinkUseCase: CreateLinkUseCase,
-    private val createSandboxLinkUseCase: CreateSandboxLinkUseCase,
     private val getUserQuotaUseCase: GetUserQuotaUseCase,
     private val createPixelEventUseCase: CreatePixelEventUseCase,
     private val getUserRewardsUseCase: GetUserRewardsUseCase,
@@ -32,10 +29,6 @@ internal class EnvoyApiImpl(
 
     override fun createLink(body: CreateLinkBody): Flow<Resource<CreateLinkResponse>> {
         return createLinkUseCase.invoke(body = body)
-    }
-
-    override fun createSandboxLink(body: CreateLinkBody): Flow<Resource<CreateSandboxLinkResponse>> {
-        return createSandboxLinkUseCase.invoke(body = body)
     }
 
     override fun getUserQuota(userId: String): Flow<Resource<UserQuotaResponse>> {

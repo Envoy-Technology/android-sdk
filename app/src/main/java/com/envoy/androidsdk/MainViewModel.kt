@@ -32,13 +32,6 @@ class MainViewModel : ViewModel() {
 
         list.add(
             ButtonState(
-                text = "Get Sandbox Link",
-                onClick = { getSandboxLink() }
-            )
-        )
-
-        list.add(
-            ButtonState(
                 text = "Get User Quota",
                 onClick = { getUserQuota() }
             )
@@ -108,15 +101,15 @@ class MainViewModel : ViewModel() {
             EnvoyApiProviderImpl.provide().createLink(
                 body = CreateLinkBody(
                     contentSetting = ContentSetting(
-                        type = ContentType.HTML_PLAIN,
+                        type = ContentType.AUDIO,
                         name = "Content name",
                         description = "content description",
                         commonData = CommonData(
-                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                            source = "https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/theygotcha.ogg",
                             isRedirect = false,
-                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                            poster = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
                         ),
-                        videoOrientation = VideoOrientation.vertical
+                        videoOrientation = VideoOrientation.VERTICAL
                     ),
                     sharerId = USER_ID
                 )
@@ -132,41 +125,6 @@ class MainViewModel : ViewModel() {
 
                     is Failure -> {
                         Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getSandboxLink() {
-        viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().createSandboxLink(
-                body = CreateLinkBody(
-                    contentSetting = ContentSetting(
-                        type = ContentType.VIDEO,
-                        name = "Content name",
-                        description = "content description",
-                        commonData = CommonData(
-                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                            isRedirect = false,
-                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                        ),
-                        videoOrientation = VideoOrientation.vertical
-                    ),
-                    sharerId = USER_ID
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Sandbox link: Success -> ${resource.value}")
-                    }
-
-                    is Loading -> {
-                        Log.d(TAG, "Sandbox link: Loading")
-                    }
-
-                    is Failure -> {
-                        Log.d(TAG, "Sandbox link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }

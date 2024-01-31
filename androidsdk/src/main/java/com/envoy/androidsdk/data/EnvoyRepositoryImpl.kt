@@ -6,7 +6,6 @@ import com.envoy.androidsdk.domain.model.ClaimUserRewardResponse
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
-import com.envoy.androidsdk.domain.model.CreateSandboxLinkResponse
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
@@ -23,15 +22,6 @@ internal class EnvoyRepositoryImpl(
         return performRequest(
             {
                 api.createLink(body = body)
-            },
-            coroutineContext
-        )
-    }
-
-    override fun createSandboxLink(body: CreateLinkBody): Flow<Resource<CreateSandboxLinkResponse>> {
-        return performRequest(
-            {
-                api.createSandboxLink(body = body)
             },
             coroutineContext
         )
