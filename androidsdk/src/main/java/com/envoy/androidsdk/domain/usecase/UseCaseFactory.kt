@@ -6,8 +6,6 @@ import com.envoy.androidsdk.domain.shared.HawkRepository
 internal class UseCaseFactory(private val repository: EnvoyRepository) {
 
     private val createLinkUseCase: CreateLinkUseCase = CreateLinkUseCaseImpl(repository)
-    private val createSandboxLinkUseCase: CreateSandboxLinkUseCase =
-        CreateSandboxLinkUseCaseImpl(repository)
     private val getUserQuotaUseCase = GetUserQuotaUseCaseImpl(repository)
     private val getUserRewardsUseCase = GetUserRewardsUseCaseImpl(repository)
     private val claimUserRewardUseCase = ClaimUserRewardUseCaseImpl(repository)
@@ -15,10 +13,6 @@ internal class UseCaseFactory(private val repository: EnvoyRepository) {
 
     fun getCreateLinkUseCase(): CreateLinkUseCase {
         return createLinkUseCase
-    }
-
-    fun getCreateSandboxLinkUseCase(): CreateSandboxLinkUseCase {
-        return createSandboxLinkUseCase
     }
 
     fun getUserQuotaUseCase(): GetUserQuotaUseCase {

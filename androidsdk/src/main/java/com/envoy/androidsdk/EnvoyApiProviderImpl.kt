@@ -112,7 +112,6 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
         return if (envoyApi == null) {
             envoyApi = EnvoyApiImpl(
                 createLinkUseCase = useCaseFactory.getCreateLinkUseCase(),
-                createSandboxLinkUseCase = useCaseFactory.getCreateSandboxLinkUseCase(),
                 getUserQuotaUseCase = useCaseFactory.getUserQuotaUseCase(),
                 createPixelEventUseCase = useCaseFactory.getCreatePixelEventUseCase(hawkRepository),
                 getUserRewardsUseCase = useCaseFactory.getUserRewardsUseCase(),
