@@ -46,7 +46,6 @@ EnvoyApiProviderImpl.init(
                         apiKey = "api_key",
                         context = applicationContext
                     )
-}
 ```
 
 For every api request, you have to get the EnvoyApi with `EnvoyApiProviderImpl.provide`. Also, every request should be called from a `CoroutineScope` (the below examples are all called from a `viewModelScope`, but you can change that to your needs). The user id should be replaced by your user's id.
