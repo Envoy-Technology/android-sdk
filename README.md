@@ -153,45 +153,6 @@ viewModelScope.launch {
         }
 ```
 
-### Create sandbox link
-
-It is similar to the simple create link approach.
-
-```kotlin
-viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().createSandboxLink(
-                body = CreateLinkBody(
-                    contentSetting = ContentSetting(
-                        type = ContentType.VIDEO,
-                        name = "Content name",
-                        description = "content description",
-                        commonData = CommonData(
-                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                            isRedirect = false,
-                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                        ),
-                        videoOrientation = VideoOrientation.vertical
-                    ),
-                    sharerId = "user_id"
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Sandbox link: Success -> ${resource.value}")
-                    }
-
-                    is Loading -> {
-                        Log.d(TAG, "Sandbox link: Loading")
-                    }
-
-                    is Failure -> {
-                        Log.d(TAG, "Sandbox link: Failure -> ${resource.throwable.message}")
-                    }
-                }
-            }
-        }
-```
-
 ### Get user quota
 
 Get target user sharing quota.
@@ -350,5 +311,30 @@ viewModelScope.launch {
         }
 ```
 
+### Prepare link
+
+Prepare link's content before it's gifted. Function specific for SCREENSHOT types of links.
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().prepLink(
+                url = "url"
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Link: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Link: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
 
 
