@@ -7,6 +7,7 @@ import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
+import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
 import com.envoy.androidsdk.domain.shared.Resource
@@ -67,6 +68,15 @@ internal class EnvoyRepositoryImpl(
         return performRequest(
             {
                 api.getUserCurrentRewards(userId = userId)
+            },
+            coroutineContext
+        )
+    }
+
+    override fun prepLink(body: PrepLinkRequest): Flow<Resource<Unit>> {
+        return performRequest(
+            {
+                api.prepLink(body = body)
             },
             coroutineContext
         )

@@ -32,10 +32,11 @@ internal fun <T> performRequest(
     emit(Loading())
     try {
         val response = block()
-        response.body()?.let {
-            emit(Success(it))
-        } ?: run {
-            emit(Failure(Throwable(message = response.errorBody()?.getParsedError() ?: "Empty body")))
+        if (response.isSuccessful) {
+            @Suppress("UNCHECKED_CAST")
+            emit(Success(response.body() ?: Unit as T))
+        } else {
+            emit(Failure(Throwable(message = response.errorBody()?.getParsedError() ?: "Request failed")))
         }
     } catch (ex: Exception) {
         emit(Failure(ex))

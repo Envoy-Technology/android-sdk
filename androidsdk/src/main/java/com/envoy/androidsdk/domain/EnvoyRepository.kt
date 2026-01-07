@@ -6,6 +6,7 @@ import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
+import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
 import com.envoy.androidsdk.domain.shared.Resource
@@ -24,4 +25,6 @@ internal interface EnvoyRepository {
     fun claimUserReward(body: ClaimUserRewardBody): Flow<Resource<ClaimUserRewardResponse>>
 
     fun getUserCurrentRewards(userId: String): Flow<Resource<UserCurrentRewardsResponse>>
+
+    fun prepLink(body: PrepLinkRequest): Flow<Resource<Unit>>
 }

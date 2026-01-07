@@ -2,9 +2,9 @@ package com.envoy.androidsdk
 
 import android.content.ClipboardManager
 import android.content.Context
-import android.net.Uri
 import android.os.CountDownTimer
 import android.util.Log
+import androidx.core.net.toUri
 import com.envoy.androidsdk.api.EnvoyApi
 import com.envoy.androidsdk.api.EnvoyApiProvider
 import com.envoy.androidsdk.data.EnvoyRepositoryImpl
@@ -84,7 +84,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                         context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                     val copiedString = clipBoardManager.primaryClip?.getItemAt(0)?.text?.toString()
                     if (hawkRepository.getHash() == null && copiedString?.contains(SHARER_HASH) == true) {
-                        val uri = Uri.parse(copiedString)
+                        val uri = copiedString.toUri()
                         val hash = uri.getQueryParameters(SHARER_HASH).first()
                         hawkRepository.setHash(hash)
                         if (copiedString.contains(LEAD_UUID)) {
@@ -116,7 +116,8 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                 createPixelEventUseCase = useCaseFactory.getCreatePixelEventUseCase(hawkRepository),
                 getUserRewardsUseCase = useCaseFactory.getUserRewardsUseCase(),
                 claimUserRewardUseCase = useCaseFactory.getClaimUserRewardUseCase(),
-                getCurrentRewardsUseCase = useCaseFactory.getUserCurrentRewardsUseCase()
+                getCurrentRewardsUseCase = useCaseFactory.getUserCurrentRewardsUseCase(),
+                prepLinkUseCase = useCaseFactory.prepLinkUseCase()
             )
             envoyApi as EnvoyApi
         } else {

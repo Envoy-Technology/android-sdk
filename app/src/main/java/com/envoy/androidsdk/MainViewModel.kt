@@ -10,6 +10,7 @@ import com.envoy.androidsdk.domain.model.ContentType
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
 import com.envoy.androidsdk.domain.model.EventName
+import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.VideoOrientation
 import com.envoy.androidsdk.domain.shared.Failure
 import com.envoy.androidsdk.domain.shared.Loading
@@ -92,6 +93,14 @@ class MainViewModel : ViewModel() {
                 onClick = { getUserCurrentRewards() }
             )
         )
+
+        list.add(
+            ButtonState(
+                text = "Prep Link",
+                onClick = { prepLink() }
+            )
+        )
+
 
         return list
     }
@@ -239,6 +248,30 @@ class MainViewModel : ViewModel() {
 
                     is Failure -> {
                         Log.d(TAG, "User current rewards: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun prepLink() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().prepLink(
+                body = PrepLinkRequest(
+                    url = "https://grokipedia.com/page/Elon_Musk"
+                )
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Link: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Link: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }
