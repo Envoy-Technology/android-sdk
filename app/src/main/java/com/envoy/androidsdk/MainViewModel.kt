@@ -1,5 +1,6 @@
 package com.envoy.androidsdk
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,6 +16,7 @@ import com.envoy.androidsdk.domain.model.VideoOrientation
 import com.envoy.androidsdk.domain.shared.Failure
 import com.envoy.androidsdk.domain.shared.Loading
 import com.envoy.androidsdk.domain.shared.Success
+import com.envoy.androidsdk.screenshot.ScreenshotLinkHelper
 import kotlinx.coroutines.launch
 
 private val TAG = MainViewModel::class.java.name
@@ -272,6 +274,33 @@ class MainViewModel : ViewModel() {
 
                     is Failure -> {
                         Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    fun createScreenshotLink(bitmap: Bitmap) {
+        viewModelScope.launch {
+            val linkBody = ScreenshotLinkHelper.createScreenshotLinkBody(
+                bitmap = bitmap,
+                sharerId = USER_ID,
+                contentName = "Screenshot",
+                contentDescription = "Shared screenshot from Android app"
+            )
+
+            EnvoyApiProviderImpl.provide().createLink(body = linkBody).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Screenshot Link: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Screenshot Link: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Screenshot Link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }
