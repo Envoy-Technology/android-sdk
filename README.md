@@ -26,7 +26,7 @@ In the app module's build.gradle, besides whatever other dependencies you alread
 
 ```gradle
 dependencies {
-    implementation 'com.github.Envoy-Technology:android-sdk:1.0.4' // replace "1.0.4" with the version you want to include
+    implementation 'com.github.Envoy-Technology:envoy-android-sdk:1.0.7' // replace "1.0.7" with the version you want to include
 }
 ```
 
@@ -46,7 +46,6 @@ EnvoyApiProviderImpl.init(
                         apiKey = "api_key",
                         context = applicationContext
                     )
-}
 ```
 
 For every api request, you have to get the EnvoyApi with `EnvoyApiProviderImpl.provide`. Also, every request should be called from a `CoroutineScope` (the below examples are all called from a `viewModelScope`, but you can change that to your needs). The user id should be replaced by your user's id.
@@ -65,7 +64,8 @@ data class CreateLinkBody(
     @SerializedName("title") val title: String? = null,
     @SerializedName("sharer_id") val sharerId: String,
     @SerializedName("is_sandbox") val isSandbox: Boolean = false,
-    @SerializedName("labels") val labels: List<Label>? = null
+    @SerializedName("labels") val labels: List<Label>? = null,
+    @SerializedName("is_carousel_link") val isCarouselLink: Boolean = false
 )
 
 data class ContentSetting(
@@ -147,45 +147,6 @@ viewModelScope.launch {
 
                     is Failure -> {
                         Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
-                    }
-                }
-            }
-        }
-```
-
-### Create sandbox link
-
-It is similar to the simple create link approach.
-
-```kotlin
-viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().createSandboxLink(
-                body = CreateLinkBody(
-                    contentSetting = ContentSetting(
-                        type = ContentType.VIDEO,
-                        name = "Content name",
-                        description = "content description",
-                        commonData = CommonData(
-                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                            isRedirect = false,
-                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                        ),
-                        videoOrientation = VideoOrientation.vertical
-                    ),
-                    sharerId = "user_id"
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Sandbox link: Success -> ${resource.value}")
-                    }
-
-                    is Loading -> {
-                        Log.d(TAG, "Sandbox link: Loading")
-                    }
-
-                    is Failure -> {
-                        Log.d(TAG, "Sandbox link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }
@@ -350,5 +311,87 @@ viewModelScope.launch {
         }
 ```
 
+### Prepare link
 
+Prepare link's content before it's gifted. Function specific for SCREENSHOT types of links.
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().prepLink(
+                url = "url"
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Link: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Link: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
+
+### Manage links
+
+Reset current carousel link selection and select the links identified by the provided hashes.
+
+```kotlin
+data class ManageLinksRequest(
+    val linkHashes: List<String>
+)
+```
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().manageLinks(
+                body = ManageLinksRequest(
+                    linkHashes = listOf("aBc123", "xYz789")
+                )
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Manage links: Success")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Manage links: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Manage links: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
+
+### Clear managed links
+
+Unselect all marketing links from the API links carousel.
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().clearManagedLinks().collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Clear managed links: Success")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Clear managed links: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Clear managed links: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
 

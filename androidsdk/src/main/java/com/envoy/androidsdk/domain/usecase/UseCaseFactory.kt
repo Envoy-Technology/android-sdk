@@ -6,19 +6,16 @@ import com.envoy.androidsdk.domain.shared.HawkRepository
 internal class UseCaseFactory(private val repository: EnvoyRepository) {
 
     private val createLinkUseCase: CreateLinkUseCase = CreateLinkUseCaseImpl(repository)
-    private val createSandboxLinkUseCase: CreateSandboxLinkUseCase =
-        CreateSandboxLinkUseCaseImpl(repository)
     private val getUserQuotaUseCase = GetUserQuotaUseCaseImpl(repository)
     private val getUserRewardsUseCase = GetUserRewardsUseCaseImpl(repository)
     private val claimUserRewardUseCase = ClaimUserRewardUseCaseImpl(repository)
     private val getCurrentRewardsUseCase = GetCurrentRewardsUseCaseImpl(repository)
+    private val prepLinkUseCase: PrepLinkUseCase = PrepLinkUseCaseImpl(repository)
+    private val manageLinksUseCase: ManageLinksUseCase = ManageLinksUseCaseImpl(repository)
+    private val clearManagedLinksUseCase: ClearManagedLinksUseCase = ClearManagedLinksUseCaseImpl(repository)
 
     fun getCreateLinkUseCase(): CreateLinkUseCase {
         return createLinkUseCase
-    }
-
-    fun getCreateSandboxLinkUseCase(): CreateSandboxLinkUseCase {
-        return createSandboxLinkUseCase
     }
 
     fun getUserQuotaUseCase(): GetUserQuotaUseCase {
@@ -39,5 +36,16 @@ internal class UseCaseFactory(private val repository: EnvoyRepository) {
 
     fun getUserCurrentRewardsUseCase(): GetCurrentRewardsUseCase {
         return getCurrentRewardsUseCase
+    }
+    fun prepLinkUseCase(): PrepLinkUseCase {
+        return prepLinkUseCase
+    }
+
+    fun getManageLinksUseCase(): ManageLinksUseCase {
+        return manageLinksUseCase
+    }
+
+    fun getClearManagedLinksUseCase(): ClearManagedLinksUseCase {
+        return clearManagedLinksUseCase
     }
 }

@@ -6,8 +6,9 @@ import com.envoy.androidsdk.domain.model.ClaimUserRewardResponse
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
-import com.envoy.androidsdk.domain.model.CreateSandboxLinkResponse
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
+import com.envoy.androidsdk.domain.model.ManageLinksRequest
+import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
 import com.envoy.androidsdk.domain.shared.Resource
@@ -23,15 +24,6 @@ internal class EnvoyRepositoryImpl(
         return performRequest(
             {
                 api.createLink(body = body)
-            },
-            coroutineContext
-        )
-    }
-
-    override fun createSandboxLink(body: CreateLinkBody): Flow<Resource<CreateSandboxLinkResponse>> {
-        return performRequest(
-            {
-                api.createSandboxLink(body = body)
             },
             coroutineContext
         )
@@ -77,6 +69,33 @@ internal class EnvoyRepositoryImpl(
         return performRequest(
             {
                 api.getUserCurrentRewards(userId = userId)
+            },
+            coroutineContext
+        )
+    }
+
+    override fun prepLink(body: PrepLinkRequest): Flow<Resource<Unit>> {
+        return performRequest(
+            {
+                api.prepLink(body = body)
+            },
+            coroutineContext
+        )
+    }
+
+    override fun manageLinks(body: ManageLinksRequest): Flow<Resource<Unit>> {
+        return performRequest(
+            {
+                api.manageLinks(body = body)
+            },
+            coroutineContext
+        )
+    }
+
+    override fun clearManagedLinks(): Flow<Resource<Unit>> {
+        return performRequest(
+            {
+                api.clearManagedLinks()
             },
             coroutineContext
         )

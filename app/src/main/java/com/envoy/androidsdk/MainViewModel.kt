@@ -1,5 +1,6 @@
 package com.envoy.androidsdk
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,14 +11,20 @@ import com.envoy.androidsdk.domain.model.ContentType
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
 import com.envoy.androidsdk.domain.model.EventName
+import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.VideoOrientation
 import com.envoy.androidsdk.domain.shared.Failure
 import com.envoy.androidsdk.domain.shared.Loading
 import com.envoy.androidsdk.domain.shared.Success
+import com.envoy.androidsdk.screenshot.ScreenshotLinkHelper
 import kotlinx.coroutines.launch
 
 private val TAG = MainViewModel::class.java.name
 private const val USER_ID = "123456"
+
+private fun String.extractHashFromUrl(): String? {
+    return this.substringAfterLast("/").takeIf { it.isNotBlank() }
+}
 
 class MainViewModel : ViewModel() {
 
@@ -27,13 +34,6 @@ class MainViewModel : ViewModel() {
             ButtonState(
                 text = "Get Link",
                 onClick = { getLink() }
-            )
-        )
-
-        list.add(
-            ButtonState(
-                text = "Get Sandbox Link",
-                onClick = { getSandboxLink() }
             )
         )
 
@@ -100,6 +100,27 @@ class MainViewModel : ViewModel() {
             )
         )
 
+        list.add(
+            ButtonState(
+                text = "Prep Link",
+                onClick = { prepLink() }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Create Carousel Links & Manage Links",
+                onClick = { createCarouselLinksAndManage() }
+            )
+        )
+
+        list.add(
+            ButtonState(
+                text = "Clear Managed Links",
+                onClick = { clearManagedLinks() }
+            )
+        )
+
         return list
     }
 
@@ -108,15 +129,15 @@ class MainViewModel : ViewModel() {
             EnvoyApiProviderImpl.provide().createLink(
                 body = CreateLinkBody(
                     contentSetting = ContentSetting(
-                        type = ContentType.HTML_PLAIN,
+                        type = ContentType.AUDIO,
                         name = "Content name",
                         description = "content description",
                         commonData = CommonData(
-                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                            source = "https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/theygotcha.ogg",
                             isRedirect = false,
-                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                            poster = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
                         ),
-                        videoOrientation = VideoOrientation.vertical
+                        videoOrientation = VideoOrientation.VERTICAL
                     ),
                     sharerId = USER_ID
                 )
@@ -132,41 +153,6 @@ class MainViewModel : ViewModel() {
 
                     is Failure -> {
                         Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getSandboxLink() {
-        viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().createSandboxLink(
-                body = CreateLinkBody(
-                    contentSetting = ContentSetting(
-                        type = ContentType.VIDEO,
-                        name = "Content name",
-                        description = "content description",
-                        commonData = CommonData(
-                            source = "example.com/media_url",
-                            isRedirect = false,
-                            poster = "example.com/image_url"
-                        ),
-                        videoOrientation = VideoOrientation.vertical
-                    ),
-                    sharerId = USER_ID
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Sandbox link: Success -> ${resource.value}")
-                    }
-
-                    is Loading -> {
-                        Log.d(TAG, "Sandbox link: Loading")
-                    }
-
-                    is Failure -> {
-                        Log.d(TAG, "Sandbox link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }
@@ -281,6 +267,190 @@ class MainViewModel : ViewModel() {
 
                     is Failure -> {
                         Log.d(TAG, "User current rewards: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun prepLink() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().prepLink(
+                body = PrepLinkRequest(
+                    url = "https://grokipedia.com/page/Elon_Musk"
+                )
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Link: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Link: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun createCarouselLinksAndManage() {
+        viewModelScope.launch {
+            Log.d(TAG, "Creating 2 carousel links...")
+
+            // Create first carousel link
+            val link1Result = runCatching {
+                var hash1: String? = null
+                EnvoyApiProviderImpl.provide().createLink(
+                    body = CreateLinkBody(
+                        contentSetting = ContentSetting(
+                            type = ContentType.AUDIO,
+                            name = "Carousel Link 1",
+                            description = "First carousel link",
+                            commonData = CommonData(
+                                source = "https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/theygotcha.ogg",
+                                isRedirect = false,
+                                poster = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                            ),
+                            videoOrientation = VideoOrientation.VERTICAL
+                        ),
+                        sharerId = USER_ID,
+                        isCarouselLink = true
+                    )
+                ).collect { resource ->
+                    when (resource) {
+                        is Success -> {
+                            Log.d(TAG, "Carousel Link 1: Success -> ${resource.value}")
+                            hash1 = resource.value.url?.extractHashFromUrl()
+                        }
+
+                        is Loading -> {
+                            Log.d(TAG, "Carousel Link 1: Loading")
+                        }
+
+                        is Failure -> {
+                            Log.d(TAG, "Carousel Link 1: Failure -> ${resource.throwable.message}")
+                        }
+                    }
+                }
+                hash1
+            }.getOrNull()
+
+            // Create second carousel link
+            val link2Result = runCatching {
+                var hash2: String? = null
+                EnvoyApiProviderImpl.provide().createLink(
+                    body = CreateLinkBody(
+                        contentSetting = ContentSetting(
+                            type = ContentType.AUDIO,
+                            name = "Carousel Link 2",
+                            description = "Second carousel link",
+                            commonData = CommonData(
+                                source = "https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/theygotcha.ogg",
+                                isRedirect = false,
+                                poster = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                            ),
+                            videoOrientation = VideoOrientation.VERTICAL
+                        ),
+                        sharerId = USER_ID,
+                        isCarouselLink = true
+                    )
+                ).collect { resource ->
+                    when (resource) {
+                        is Success -> {
+                            Log.d(TAG, "Carousel Link 2: Success -> ${resource.value}")
+                            hash2 = resource.value.url?.extractHashFromUrl()
+                        }
+
+                        is Loading -> {
+                            Log.d(TAG, "Carousel Link 2: Loading")
+                        }
+
+                        is Failure -> {
+                            Log.d(TAG, "Carousel Link 2: Failure -> ${resource.throwable.message}")
+                        }
+                    }
+                }
+                hash2
+            }.getOrNull()
+
+            // Manage links if both hashes are available
+            val hashes = listOfNotNull(link1Result, link2Result)
+            if (hashes.isNotEmpty()) {
+                Log.d(TAG, "Managing links with hashes: $hashes")
+                manageLinks(hashes)
+            } else {
+                Log.d(TAG, "Could not create carousel links, skipping manage-links")
+            }
+        }
+    }
+
+    private suspend fun manageLinks(hashes: List<String>) {
+        EnvoyApiProviderImpl.provide().manageLinks(
+            body = com.envoy.androidsdk.domain.model.ManageLinksRequest(
+                linkHashes = hashes
+            )
+        ).collect { resource ->
+            when (resource) {
+                is Success -> {
+                    Log.d(TAG, "Manage links: Success")
+                }
+
+                is Loading -> {
+                    Log.d(TAG, "Manage links: Loading")
+                }
+
+                is Failure -> {
+                    Log.d(TAG, "Manage links: Failure -> ${resource.throwable.message}")
+                }
+            }
+        }
+    }
+
+    private fun clearManagedLinks() {
+        viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().clearManagedLinks().collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Clear managed links: Success")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Clear managed links: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Clear managed links: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+    }
+
+    fun createScreenshotLink(bitmap: Bitmap) {
+        viewModelScope.launch {
+            val linkBody = ScreenshotLinkHelper.createScreenshotLinkBody(
+                bitmap = bitmap,
+                sharerId = USER_ID,
+                contentName = "Screenshot",
+                contentDescription = "Shared screenshot from Android app"
+            )
+
+            EnvoyApiProviderImpl.provide().createLink(body = linkBody).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Screenshot Link: Success -> ${resource.value}")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Screenshot Link: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Screenshot Link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }

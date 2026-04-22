@@ -5,8 +5,9 @@ import com.envoy.androidsdk.domain.model.ClaimUserRewardResponse
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
-import com.envoy.androidsdk.domain.model.CreateSandboxLinkResponse
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
+import com.envoy.androidsdk.domain.model.ManageLinksRequest
+import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
 import retrofit2.Response
@@ -19,9 +20,6 @@ internal interface EnvoyServiceApi {
 
     @POST("create-link")
     suspend fun createLink(@Body body: CreateLinkBody): Response<CreateLinkResponse>
-
-    @POST("create-sandbox-link")
-    suspend fun createSandboxLink(@Body body: CreateLinkBody): Response<CreateSandboxLinkResponse>
 
     @GET("user-quota/{user_id}")
     suspend fun getUserQuota(@Path("user_id") userId: String): Response<UserQuotaResponse>
@@ -37,4 +35,13 @@ internal interface EnvoyServiceApi {
 
     @GET("user-current-rewards/{user_id}")
     suspend fun getUserCurrentRewards(@Path("user_id") userId: String): Response<UserCurrentRewardsResponse>
+
+    @POST("prep-link")
+    suspend fun prepLink(@Body body: PrepLinkRequest): Response<Unit>
+
+    @POST("manage-links")
+    suspend fun manageLinks(@Body body: ManageLinksRequest): Response<Unit>
+
+    @POST("manage-links/clear")
+    suspend fun clearManagedLinks(): Response<Unit>
 }
