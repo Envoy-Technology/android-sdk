@@ -32,6 +32,7 @@ object ScreenshotLinkHelper {
      * @param contentName Title for the screenshot content
      * @param contentDescription Description for the screenshot content
      * @param isSandbox Whether this is a sandbox link (default: false)
+     * @param isCarouselLink Whether this is a carousel link (default: false)
      * @param compressionFormat Bitmap compression format (default: PNG)
      * @param compressionQuality Compression quality 0-100 (default: 100)
      * @return [CreateLinkBody] ready to be used with EnvoyApi.createLink()
@@ -42,6 +43,7 @@ object ScreenshotLinkHelper {
         contentName: String = "Screenshot",
         contentDescription: String = "Shared screenshot",
         isSandbox: Boolean = false,
+        isCarouselLink: Boolean = false,
         compressionFormat: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG,
         compressionQuality: Int = 100
     ): CreateLinkBody {
@@ -57,7 +59,8 @@ object ScreenshotLinkHelper {
         return CreateLinkBody(
             contentSetting = contentSetting,
             sharerId = sharerId,
-            isSandbox = isSandbox
+            isSandbox = isSandbox,
+            isCarouselLink = isCarouselLink
         )
     }
 }
