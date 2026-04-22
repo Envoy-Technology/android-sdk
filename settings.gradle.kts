@@ -16,6 +16,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Android-Sdk"
+rootProject.name = "Envoy-Android-Sdk"
 include(":app")
 include(":androidsdk")
