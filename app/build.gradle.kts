@@ -1,7 +1,21 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
 }
+
+// Load values from the repo-root .env file (see .env.example). Keys defined there
+// (e.g. API_KEY) are exposed to the app via BuildConfig.
+val envProperties = Properties().apply {
+    val envFile = rootProject.file(".env")
+    if (envFile.exists()) {
+        envFile.inputStream().use { load(it) }
+    }
+}
+
+fun envValue(key: String, default: String = ""): String =
+    (envProperties.getProperty(key) ?: System.getenv(key) ?: default).trim('"')
 
 android {
     namespace = "com.envoy.androidsdk"
@@ -18,6 +32,8 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "API_KEY", "\"${envValue("API_KEY")}\"")
     }
 
     buildTypes {
@@ -38,6 +54,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"

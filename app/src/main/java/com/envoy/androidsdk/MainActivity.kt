@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     EnvoyApiProviderImpl.init(
-                        apiKey = "lyEEDHBxog54O1VTWmgey770BvTdZqYG5GAibgRk",
+                        apiKey = BuildConfig.API_KEY,
                         context = applicationContext
                     )
                     Greeting(data = viewModel.getButtonsState())
