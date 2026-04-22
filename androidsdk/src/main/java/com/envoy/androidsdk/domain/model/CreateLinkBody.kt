@@ -21,7 +21,8 @@ data class CreateLinkBody(
     @SerializedName("extra") val extra: String? = null,
     @SerializedName("sharer_id") val sharerId: String,
     @SerializedName("is_sandbox") val isSandbox: Boolean = false,
-    @SerializedName("labels") val labels: List<Label>? = null
+    @SerializedName("labels") val labels: List<Label>? = null,
+    @SerializedName("is_carousel_link") val isCarouselLink: Boolean = false
 )
 
 /**

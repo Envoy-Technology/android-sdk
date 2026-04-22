@@ -6,6 +6,7 @@ import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
+import com.envoy.androidsdk.domain.model.ManageLinksRequest
 import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
@@ -27,5 +28,9 @@ interface EnvoyApi {
     fun getUserCurrentRewards(userId: String): Flow<Resource<UserCurrentRewardsResponse>>
 
     fun prepLink(body: PrepLinkRequest): Flow<Resource<Unit>>
+
+    fun manageLinks(body: ManageLinksRequest): Flow<Resource<Unit>>
+
+    fun clearManagedLinks(): Flow<Resource<Unit>>
 }
 

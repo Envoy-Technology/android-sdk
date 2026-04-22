@@ -26,7 +26,7 @@ In the app module's build.gradle, besides whatever other dependencies you alread
 
 ```gradle
 dependencies {
-    implementation 'com.github.Envoy-Technology:android-sdk:1.0.4' // replace "1.0.4" with the version you want to include
+    implementation 'com.github.Envoy-Technology:envoy-android-sdk:1.0.7' // replace "1.0.7" with the version you want to include
 }
 ```
 
@@ -64,7 +64,8 @@ data class CreateLinkBody(
     @SerializedName("title") val title: String? = null,
     @SerializedName("sharer_id") val sharerId: String,
     @SerializedName("is_sandbox") val isSandbox: Boolean = false,
-    @SerializedName("labels") val labels: List<Label>? = null
+    @SerializedName("labels") val labels: List<Label>? = null,
+    @SerializedName("is_carousel_link") val isCarouselLink: Boolean = false
 )
 
 data class ContentSetting(
@@ -336,4 +337,61 @@ viewModelScope.launch {
         }
 ```
 
+### Manage links
+
+Reset current carousel link selection and select the links identified by the provided hashes.
+
+```kotlin
+data class ManageLinksRequest(
+    val linkHashes: List<String>
+)
+```
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().manageLinks(
+                body = ManageLinksRequest(
+                    linkHashes = listOf("aBc123", "xYz789")
+                )
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Manage links: Success")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Manage links: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Manage links: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
+
+### Clear managed links
+
+Unselect all marketing links from the API links carousel.
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().clearManagedLinks().collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Clear managed links: Success")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Clear managed links: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Clear managed links: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
 

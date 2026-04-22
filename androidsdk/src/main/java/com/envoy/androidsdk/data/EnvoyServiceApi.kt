@@ -6,6 +6,7 @@ import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import com.envoy.androidsdk.domain.model.CreatePixelEventBody
 import com.envoy.androidsdk.domain.model.GetUserRewardResponse
+import com.envoy.androidsdk.domain.model.ManageLinksRequest
 import com.envoy.androidsdk.domain.model.PrepLinkRequest
 import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
@@ -37,4 +38,10 @@ internal interface EnvoyServiceApi {
 
     @POST("prep-link")
     suspend fun prepLink(@Body body: PrepLinkRequest): Response<Unit>
+
+    @POST("manage-links")
+    suspend fun manageLinks(@Body body: ManageLinksRequest): Response<Unit>
+
+    @POST("manage-links/clear")
+    suspend fun clearManagedLinks(): Response<Unit>
 }

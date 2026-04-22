@@ -117,7 +117,9 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                 getUserRewardsUseCase = useCaseFactory.getUserRewardsUseCase(),
                 claimUserRewardUseCase = useCaseFactory.getClaimUserRewardUseCase(),
                 getCurrentRewardsUseCase = useCaseFactory.getUserCurrentRewardsUseCase(),
-                prepLinkUseCase = useCaseFactory.prepLinkUseCase()
+                prepLinkUseCase = useCaseFactory.prepLinkUseCase(),
+                manageLinksUseCase = useCaseFactory.getManageLinksUseCase(),
+                clearManagedLinksUseCase = useCaseFactory.getClearManagedLinksUseCase()
             )
             envoyApi as EnvoyApi
         } else {
