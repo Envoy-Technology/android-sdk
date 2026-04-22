@@ -336,4 +336,61 @@ viewModelScope.launch {
         }
 ```
 
+### Manage links
+
+Reset current carousel link selection and select the links identified by the provided hashes.
+
+```kotlin
+data class ManageLinksRequest(
+    val linkHashes: List<String>
+)
+```
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().manageLinks(
+                body = ManageLinksRequest(
+                    linkHashes = listOf("aBc123", "xYz789")
+                )
+            ).collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Manage links: Success")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Manage links: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Manage links: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
+
+### Clear managed links
+
+Unselect all marketing links from the API links carousel.
+
+```kotlin
+viewModelScope.launch {
+            EnvoyApiProviderImpl.provide().clearManagedLinks().collect { resource ->
+                when (resource) {
+                    is Success -> {
+                        Log.d(TAG, "Clear managed links: Success")
+                    }
+
+                    is Loading -> {
+                        Log.d(TAG, "Clear managed links: Loading")
+                    }
+
+                    is Failure -> {
+                        Log.d(TAG, "Clear managed links: Failure -> ${resource.throwable.message}")
+                    }
+                }
+            }
+        }
+```
 

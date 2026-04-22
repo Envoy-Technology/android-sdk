@@ -11,6 +11,8 @@ internal class UseCaseFactory(private val repository: EnvoyRepository) {
     private val claimUserRewardUseCase = ClaimUserRewardUseCaseImpl(repository)
     private val getCurrentRewardsUseCase = GetCurrentRewardsUseCaseImpl(repository)
     private val prepLinkUseCase: PrepLinkUseCase = PrepLinkUseCaseImpl(repository)
+    private val manageLinksUseCase: ManageLinksUseCase = ManageLinksUseCaseImpl(repository)
+    private val clearManagedLinksUseCase: ClearManagedLinksUseCase = ClearManagedLinksUseCaseImpl(repository)
 
     fun getCreateLinkUseCase(): CreateLinkUseCase {
         return createLinkUseCase
@@ -37,5 +39,13 @@ internal class UseCaseFactory(private val repository: EnvoyRepository) {
     }
     fun prepLinkUseCase(): PrepLinkUseCase {
         return prepLinkUseCase
+    }
+
+    fun getManageLinksUseCase(): ManageLinksUseCase {
+        return manageLinksUseCase
+    }
+
+    fun getClearManagedLinksUseCase(): ClearManagedLinksUseCase {
+        return clearManagedLinksUseCase
     }
 }
