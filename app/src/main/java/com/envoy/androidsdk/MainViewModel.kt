@@ -22,10 +22,6 @@ import kotlinx.coroutines.launch
 private val TAG = MainViewModel::class.java.name
 private const val USER_ID = "123456"
 
-private fun String.extractHashFromUrl(): String? {
-    return this.substringAfterLast("/").takeIf { it.isNotBlank() }
-}
-
 class MainViewModel : ViewModel() {
 
     fun getButtonsState(): List<ButtonState> {
@@ -303,7 +299,7 @@ class MainViewModel : ViewModel() {
 
             // Create first carousel link
             val link1Result = runCatching {
-                var hash1: String? = null
+                var url1: String? = null
                 EnvoyApiProviderImpl.provide().createLink(
                     body = CreateLinkBody(
                         contentSetting = ContentSetting(
@@ -324,7 +320,7 @@ class MainViewModel : ViewModel() {
                     when (resource) {
                         is Success -> {
                             Log.d(TAG, "Carousel Link 1: Success -> ${resource.value}")
-                            hash1 = resource.value.url?.extractHashFromUrl()
+                            url1 = resource.value.url
                         }
 
                         is Loading -> {
@@ -336,12 +332,12 @@ class MainViewModel : ViewModel() {
                         }
                     }
                 }
-                hash1
+                url1
             }.getOrNull()
 
             // Create second carousel link
             val link2Result = runCatching {
-                var hash2: String? = null
+                var url2: String? = null
                 EnvoyApiProviderImpl.provide().createLink(
                     body = CreateLinkBody(
                         contentSetting = ContentSetting(
@@ -362,7 +358,7 @@ class MainViewModel : ViewModel() {
                     when (resource) {
                         is Success -> {
                             Log.d(TAG, "Carousel Link 2: Success -> ${resource.value}")
-                            hash2 = resource.value.url?.extractHashFromUrl()
+                            url2 = resource.value.url
                         }
 
                         is Loading -> {
@@ -374,24 +370,24 @@ class MainViewModel : ViewModel() {
                         }
                     }
                 }
-                hash2
+                url2
             }.getOrNull()
 
-            // Manage links if both hashes are available
-            val hashes = listOfNotNull(link1Result, link2Result)
-            if (hashes.isNotEmpty()) {
-                Log.d(TAG, "Managing links with hashes: $hashes")
-                manageLinks(hashes)
+            // Manage links if both URLs are available
+            val urls = listOfNotNull(link1Result, link2Result)
+            if (urls.isNotEmpty()) {
+                Log.d(TAG, "Managing links with urls: $urls")
+                manageLinks(urls)
             } else {
                 Log.d(TAG, "Could not create carousel links, skipping manage-links")
             }
         }
     }
 
-    private suspend fun manageLinks(hashes: List<String>) {
+    private suspend fun manageLinks(links: List<String>) {
         EnvoyApiProviderImpl.provide().manageLinks(
             body = com.envoy.androidsdk.domain.model.ManageLinksRequest(
-                linkHashes = hashes
+                links = links
             )
         ).collect { resource ->
             when (resource) {
