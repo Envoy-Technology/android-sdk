@@ -25,6 +25,7 @@ android {
     defaultConfig {
         applicationId = "com.envoy.androidsdk.sample"
         minSdk = 26
+        //noinspection EditedTargetSdkVersion
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
