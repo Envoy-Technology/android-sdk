@@ -1,7 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-apply(from = "publication.gradle")
-
 plugins {
     id("com.android.library")
     id("maven-publish")
@@ -46,7 +44,7 @@ kotlin {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("com.google.android.material:material:1.14.0")
 
@@ -60,4 +58,18 @@ dependencies {
 
     // Hawk
     implementation("com.orhanobut:hawk:2.0.1")
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("release") {
+            groupId = project.findProperty("sdkGroupId") as String
+            artifactId = project.findProperty("sdkArtifactId") as String
+            version = project.findProperty("sdkVersion") as String
+
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
 }

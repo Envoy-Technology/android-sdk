@@ -21,7 +21,7 @@ class Success<out T>(val value: T) : Resource<T>() {
     }
 
     override fun hashCode(): Int {
-        return value?.hashCode() ?: 0
+        return value.hashCode()
     }
 }
 

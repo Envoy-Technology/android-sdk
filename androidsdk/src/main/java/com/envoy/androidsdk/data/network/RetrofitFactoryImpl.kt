@@ -44,7 +44,7 @@ internal class RetrofitFactoryImpl : RetrofitFactory {
             .build()
     }
 
-    private inner class AuthInterceptor : Interceptor {
+    private class AuthInterceptor : Interceptor {
 
         lateinit var config: SdkConfig
         override fun intercept(chain: Interceptor.Chain): Response {

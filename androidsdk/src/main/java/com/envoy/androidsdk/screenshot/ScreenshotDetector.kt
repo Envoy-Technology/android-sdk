@@ -90,7 +90,7 @@ class ScreenshotDetector(
         // doesn't reference a specific image row. Querying such URIs throws
         // "Unknown URL" on some devices, so skip anything without a numeric id suffix.
         val lastSegment = uri.lastPathSegment
-        if (lastSegment == null || lastSegment.toLongOrNull() == null) {
+        if (lastSegment?.toLongOrNull() == null) {
             Log.d(TAG, "Skipping non-numeric URI: $uri")
             return
         }
