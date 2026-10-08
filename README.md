@@ -129,7 +129,7 @@ viewModelScope.launch {
                         commonData = CommonData(
                             source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
                             isRedirect = false,
-                            poster = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+                            poster = "https://envoy-misc.s3.eu-west-2.amazonaws.com/73ac27c5-dbbb-4ead-903b-d8382039bb2b_d365cfb1-94b6-4de7-a97b-55cb99768149.jpg"
                         ),
                         videoOrientation = VideoOrientation.vertical
                     ),
@@ -322,15 +322,15 @@ viewModelScope.launch {
             ).collect { resource ->
                 when (resource) {
                     is Success -> {
-                        Log.d(TAG, "Link: Success -> ${resource.value}")
+                        Log.d(TAG, "Prep link: Success -> ${resource.value}")
                     }
 
                     is Loading -> {
-                        Log.d(TAG, "Link: Loading")
+                        Log.d(TAG, "Prep link: Loading")
                     }
 
                     is Failure -> {
-                        Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
+                        Log.d(TAG, "Prep link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }

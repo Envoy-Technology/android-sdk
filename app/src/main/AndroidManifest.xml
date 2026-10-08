@@ -19,7 +19,7 @@
         android:theme="@style/Theme.AndroidSdk"
         tools:targetApi="31">
         <activity
-            android:name=".MainActivity"
+            android:name="com.envoy.androidsdk.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.AndroidSdk">
             <intent-filter>
