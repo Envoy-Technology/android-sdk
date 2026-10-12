@@ -1,5 +1,6 @@
 package com.envoy.androidsdk.data
 
+import com.envoy.androidsdk.data.HawkKeys.DEFERRED_LINK_CHECK_DONE
 import com.envoy.androidsdk.data.HawkKeys.HASH
 import com.envoy.androidsdk.data.HawkKeys.LEAD_UUID
 import com.envoy.androidsdk.domain.shared.HawkRepository
@@ -24,9 +25,19 @@ class HawkRepositoryImpl(
     override fun setLeadUiid(leadUiid: String) {
         hawk.put(LEAD_UUID, leadUiid)
     }
+
+    override fun isDeferredLinkCheckDone(): Boolean? {
+        return hawk.get(DEFERRED_LINK_CHECK_DONE)
+    }
+
+    override fun setDeferredLinkCheckDone(done: Boolean) {
+        hawk.put(DEFERRED_LINK_CHECK_DONE, done)
+    }
 }
 
 object HawkKeys {
     const val HASH = "hash"
     const val LEAD_UUID = "lead_uuid"
+    // Prefixed, because Hawk storage is shared with the host app if it uses Hawk too.
+    const val DEFERRED_LINK_CHECK_DONE = "envoy.isDeferredLinkCheckDone"
 }

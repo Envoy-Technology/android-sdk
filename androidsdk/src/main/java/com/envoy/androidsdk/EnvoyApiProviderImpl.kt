@@ -1,10 +1,8 @@
 package com.envoy.androidsdk
 
-import android.content.ClipboardManager
+import android.app.Application
 import android.content.Context
-import android.os.CountDownTimer
 import android.util.Log
-import androidx.core.net.toUri
 import com.envoy.androidsdk.api.EnvoyApi
 import com.envoy.androidsdk.api.EnvoyApiProvider
 import com.envoy.androidsdk.data.EnvoyRepositoryImpl
@@ -13,6 +11,10 @@ import com.envoy.androidsdk.data.HawkRepositoryImpl
 import com.envoy.androidsdk.data.network.RetrofitFactory
 import com.envoy.androidsdk.data.network.RetrofitFactoryImpl
 import com.envoy.androidsdk.data.network.model.SdkConfig
+import com.envoy.androidsdk.deferredlink.AndroidAppState
+import com.envoy.androidsdk.deferredlink.AndroidMainThread
+import com.envoy.androidsdk.deferredlink.DeferredLinkCoordinator
+import com.envoy.androidsdk.deferredlink.SystemDeferredLinkClipboard
 import com.envoy.androidsdk.domain.EnvoyRepository
 import com.envoy.androidsdk.domain.shared.HawkRepository
 import com.envoy.androidsdk.domain.shared.InitException
@@ -23,10 +25,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.coroutines.CoroutineContext
 
 private val TAG = EnvoyApiProviderImpl::class.java.name
-private const val SHARER_HASH = "envoy_share_link_hash"
-private const val LEAD_UUID = "envoy_lead_uuid"
-private const val ONE_SECOND = 1000L
-private const val CLIP_BOARD_TIMER = 5000L // 5 seconds
 
 object EnvoyApiProviderImpl : EnvoyApiProvider {
 
@@ -37,6 +35,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     private lateinit var repository: EnvoyRepository
     private lateinit var useCaseFactory: UseCaseFactory
     private lateinit var hawkRepository: HawkRepository
+    private lateinit var deferredLinks: DeferredLinkCoordinator
 
     private val isInitialized = MutableStateFlow(false)
 
@@ -73,30 +72,16 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                 DefaultHawkFacade(builder)
             )
 
-            // we cannot access the clipboard manager before the view is done, so we have to delay accessing it
-            val clipBoardTimer = object : CountDownTimer(CLIP_BOARD_TIMER, ONE_SECOND) {
-                override fun onTick(millisUntilFinished: Long) {
-                    // NOP
-                }
-
-                override fun onFinish() {
-                    val clipBoardManager =
-                        context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                    val copiedString = clipBoardManager.primaryClip?.getItemAt(0)?.text?.toString()
-                    if (hawkRepository.getHash() == null && copiedString?.contains(SHARER_HASH) == true) {
-                        val uri = copiedString.toUri()
-                        val hash = uri.getQueryParameters(SHARER_HASH).first()
-                        hawkRepository.setHash(hash)
-                        if (copiedString.contains(LEAD_UUID)) {
-                            val leadUuid = uri.getQueryParameters(LEAD_UUID).first()
-                            hawkRepository.setLeadUiid(leadUuid)
-                        }
-
-                    }
-                }
-            }
-
-            clipBoardTimer.start()
+            // The clipboard is read only by EnvoyApi.checkDeferredLink, so the host app decides when.
+            val application = context.applicationContext as Application
+            val mainThread = AndroidMainThread()
+            deferredLinks = DeferredLinkCoordinator(
+                clipboard = SystemDeferredLinkClipboard(application),
+                storage = hawkRepository,
+                appState = AndroidAppState(application, mainThread),
+                mainThread = mainThread,
+                installTimeMillis = { firstInstallTime(application) }
+            )
 
             isInitialized.value = true
         } else {
@@ -113,17 +98,27 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
             envoyApi = EnvoyApiImpl(
                 createLinkUseCase = useCaseFactory.getCreateLinkUseCase(),
                 getUserQuotaUseCase = useCaseFactory.getUserQuotaUseCase(),
-                createPixelEventUseCase = useCaseFactory.getCreatePixelEventUseCase(hawkRepository),
+                createPixelEventUseCase = useCaseFactory.getCreatePixelEventUseCase(deferredLinks),
                 getUserRewardsUseCase = useCaseFactory.getUserRewardsUseCase(),
                 claimUserRewardUseCase = useCaseFactory.getClaimUserRewardUseCase(),
                 getCurrentRewardsUseCase = useCaseFactory.getUserCurrentRewardsUseCase(),
                 prepLinkUseCase = useCaseFactory.prepLinkUseCase(),
                 manageLinksUseCase = useCaseFactory.getManageLinksUseCase(),
-                clearManagedLinksUseCase = useCaseFactory.getClearManagedLinksUseCase()
+                clearManagedLinksUseCase = useCaseFactory.getClearManagedLinksUseCase(),
+                deferredLinks = deferredLinks
             )
             envoyApi as EnvoyApi
         } else {
             envoyApi as EnvoyApi
         }
     }
+
+    /** Kept across app updates. */
+    private fun firstInstallTime(context: Context): Long? =
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).firstInstallTime
+        } catch (e: Exception) {
+            Log.w(TAG, "Envoy SDK could not read the app install time", e)
+            null
+        }
 }
