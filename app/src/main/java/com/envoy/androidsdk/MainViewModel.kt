@@ -131,7 +131,7 @@ class MainViewModel : ViewModel() {
                         commonData = CommonData(
                             source = "https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/theygotcha.ogg",
                             isRedirect = false,
-                            poster = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                            poster = "https://envoy-misc.s3.eu-west-2.amazonaws.com/73ac27c5-dbbb-4ead-903b-d8382039bb2b_d365cfb1-94b6-4de7-a97b-55cb99768149.jpg"
                         ),
                         videoOrientation = VideoOrientation.VERTICAL
                     ),
@@ -278,15 +278,15 @@ class MainViewModel : ViewModel() {
             ).collect { resource ->
                 when (resource) {
                     is Success -> {
-                        Log.d(TAG, "Link: Success -> ${resource.value}")
+                        Log.d(TAG, "Prep link: Success -> ${resource.value}")
                     }
 
                     is Loading -> {
-                        Log.d(TAG, "Link: Loading")
+                        Log.d(TAG, "Prep link: Loading")
                     }
 
                     is Failure -> {
-                        Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
+                        Log.d(TAG, "Prep link: Failure -> ${resource.throwable.message}")
                     }
                 }
             }
@@ -309,7 +309,7 @@ class MainViewModel : ViewModel() {
                             commonData = CommonData(
                                 source = "https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/theygotcha.ogg",
                                 isRedirect = false,
-                                poster = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                                poster = "https://envoy-misc.s3.eu-west-2.amazonaws.com/73ac27c5-dbbb-4ead-903b-d8382039bb2b_d365cfb1-94b6-4de7-a97b-55cb99768149.jpg"
                             ),
                             videoOrientation = VideoOrientation.VERTICAL
                         ),
@@ -347,7 +347,7 @@ class MainViewModel : ViewModel() {
                             commonData = CommonData(
                                 source = "https://commondatastorage.googleapis.com/codeskulptor-demos/pyman_assets/theygotcha.ogg",
                                 isRedirect = false,
-                                poster = "https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
+                                poster = "https://envoy-misc.s3.eu-west-2.amazonaws.com/73ac27c5-dbbb-4ead-903b-d8382039bb2b_d365cfb1-94b6-4de7-a97b-55cb99768149.jpg"
                             ),
                             videoOrientation = VideoOrientation.VERTICAL
                         ),

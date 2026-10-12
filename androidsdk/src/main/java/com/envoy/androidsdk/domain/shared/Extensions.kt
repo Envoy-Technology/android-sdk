@@ -1,7 +1,8 @@
 package com.envoy.androidsdk.domain.shared
 
-import com.google.gson.Gson
+import com.google.gson.JsonObject
 import com.google.gson.JsonParseException
+import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -16,12 +17,21 @@ private const val SYNTAX_SERVER_ERROR = "The response doesn't have a valid forma
 
 internal fun ResponseBody.getParsedError(): String =
     try {
-        val apiError = Gson().fromJson(string(), ApiError::class.java)
-        apiError?.details?.firstOrNull()?.message ?: GENERIC_SERVER_ERROR
-    } catch (ex: JsonParseException) {
-        PARSING_SERVER_ERROR
+        val root = JsonParser.parseString(string())
+        val detail = (root as? JsonObject)?.get("detail")
+        when {
+            detail == null -> GENERIC_SERVER_ERROR
+            detail.isJsonPrimitive && detail.asJsonPrimitive.isString -> detail.asString
+            detail.isJsonArray -> {
+                val first = detail.asJsonArray.firstOrNull() as? JsonObject
+                first?.get("msg")?.asString ?: GENERIC_SERVER_ERROR
+            }
+            else -> GENERIC_SERVER_ERROR
+        }
     } catch (ex: JsonSyntaxException) {
         SYNTAX_SERVER_ERROR
+    } catch (ex: JsonParseException) {
+        PARSING_SERVER_ERROR
     }
 
 @Suppress("TooGenericExceptionCaught")
