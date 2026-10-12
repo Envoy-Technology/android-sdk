@@ -1,6 +1,7 @@
 package com.envoy.androidsdk
 
 import com.envoy.androidsdk.api.EnvoyApi
+import com.envoy.androidsdk.deferredlink.DeferredLinkCoordinator
 import com.envoy.androidsdk.domain.model.ClaimUserRewardBody
 import com.envoy.androidsdk.domain.model.ClaimUserRewardResponse
 import com.envoy.androidsdk.domain.model.CreateLinkBody
@@ -32,8 +33,13 @@ internal class EnvoyApiImpl(
     private val getCurrentRewardsUseCase: GetCurrentRewardsUseCase,
     private val prepLinkUseCase: PrepLinkUseCase,
     private val manageLinksUseCase: ManageLinksUseCase,
-    private val clearManagedLinksUseCase: ClearManagedLinksUseCase
+    private val clearManagedLinksUseCase: ClearManagedLinksUseCase,
+    private val deferredLinks: DeferredLinkCoordinator
 ) : EnvoyApi {
+
+    override fun checkDeferredLink(onResult: ((found: Boolean) -> Unit)?) {
+        deferredLinks.checkDeferredLink(onResult)
+    }
 
     override fun createLink(body: CreateLinkBody): Flow<Resource<CreateLinkResponse>> {
         return createLinkUseCase.invoke(body = body)

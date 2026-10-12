@@ -47,6 +47,8 @@ dependencies {
     implementation("androidx.core:core-ktx:1.19.1")
     implementation("androidx.appcompat:appcompat:1.8.0")
     implementation("com.google.android.material:material:1.14.0")
+    // App foreground/background state for the deferred-link check
+    implementation("androidx.lifecycle:lifecycle-process:2.10.0")
 
     // retrofit
     implementation("com.squareup.retrofit2:retrofit:3.0.0")

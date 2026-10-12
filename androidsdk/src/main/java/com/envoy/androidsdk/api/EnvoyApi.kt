@@ -15,6 +15,20 @@ import kotlinx.coroutines.flow.Flow
 
 interface EnvoyApi {
 
+    /**
+     * Reads the clipboard once per install, within a day of installing, and calls [onResult] with `true`
+     * when Envoy link parameters were found and stored.
+     * The clipboard is read only when it may contain a web URL, so Android shows its clipboard access toast
+     * only then, and only while an activity of the app has window focus.
+     * Calls made while a check is in progress get its result.
+     * If the check can't finish (the clipboard fails twice or the app doesn't get focus within 30 seconds),
+     * it is not used up and a later call tries again.
+     * Pixel events logged while the check runs are sent after it, so they carry the attribution.
+     * Can be called from any thread; [onResult] is called on the main thread, never before this returns,
+     * and at most 3 seconds later.
+     */
+    fun checkDeferredLink(onResult: ((found: Boolean) -> Unit)? = null)
+
     fun createLink(body: CreateLinkBody): Flow<Resource<CreateLinkResponse>>
 
     fun getUserQuota(userId: String): Flow<Resource<UserQuotaResponse>>

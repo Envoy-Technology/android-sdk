@@ -26,7 +26,7 @@ In the app module's build.gradle, besides whatever other dependencies you alread
 
 ```gradle
 dependencies {
-    implementation("com.github.Envoy-Technology:android-sdk:1.0.9") // replace "1.0.9" with the version you want to include
+    implementation("com.github.Envoy-Technology:android-sdk:1.0.10") // replace "1.0.10" with the version you want to include
 }
 ```
 
@@ -47,6 +47,49 @@ EnvoyApiProviderImpl.init(
                         context = applicationContext
                     )
 ```
+
+### Check deferred link (required for install attribution)
+
+> **Upgrading from 1.0.9 or earlier:**
+> - `EnvoyApiProviderImpl.init` no longer reads the clipboard. If you don't call `checkDeferredLink`, installs are not attributed to the share link that brought the user: pixel events are sent without `share_link_hash` and `lead_uuid`.
+> - If an earlier SDK version already stored a share link on this install, `checkDeferredLink` doesn't read the clipboard again.
+> - `EnvoyApi` has a new method, `checkDeferredLink`. Classes that implement it, such as test doubles or wrappers, must implement it; a wrapper should forward it to `EnvoyApiProviderImpl.provide()`.
+
+Envoy landing pages copy the share link to the clipboard before redirecting to Google Play. To attribute the install to that link, call `checkDeferredLink` after initialization, and log `app_downloaded` once per install right after that call. The SDK doesn't read the clipboard on its own, so you decide when it happens. If you need user consent first (e.g. under GDPR/ePrivacy in the EU), call it right after consent is given.
+
+Call `init` in `Application.onCreate` or in your first activity's `onCreate`, before it is resumed: the SDK tracks the focused activity from then on, and Android gives clipboard access only to the app that has focus.
+
+```kotlin
+EnvoyApiProviderImpl.init(apiKey = "api_key", context = applicationContext)
+EnvoyApiProviderImpl.provide().checkDeferredLink { found ->
+    // found == true when Envoy link parameters were stored. Optional, e.g. to route the user.
+}
+// Once per install. Held until the check above ends, so it carries the attribution.
+viewModelScope.launch {
+    EnvoyApiProviderImpl.provide()
+        .createPixelEvent(CreatePixelEventBody(eventName = EventName.app_downloaded.name))
+        .collect { /* ... */ }
+}
+```
+
+Don't log `app_downloaded` in the callback: it is called on every call of `checkDeferredLink`, with `false` once the check has been used up, so the event would be sent on every launch.
+
+What it does:
+- Runs once per install. It works from the first launch; once more than a day has passed since install, the clipboard no longer relates to the install, so it isn't touched and the check completes with `false`. This also covers apps that add the call in a later version, or get consent much later.
+- It first checks, without reading the content, whether the clipboard holds text that may be a web URL (on Android 12+ using the system's classification of the clip). It reads the clipboard only if it does, so Android 12+ shows its "pasted from your clipboard" toast only in that case.
+- It works with the clipboard only while an activity of the app has window focus, and waits for that if needed (e.g. while a dialog or a permission prompt is shown).
+- It keeps only the `envoy_share_link_hash` and `envoy_lead_uuid` query parameters (stored by the SDK and sent with pixel events). The rest of the clipboard content is discarded.
+- Calls made while a check is in progress get the result of that check.
+- The callback is called on the main thread, never before `checkDeferredLink` returns, and at most 3 seconds later. The check itself can take longer.
+- If the check can't finish (reading the clipboard fails twice in a row, or the app doesn't get focus within 30 seconds), it is not used up and a later call, e.g. on the next launch, tries again.
+
+Pixel events:
+- Events collected while a check is requested or in progress are held until the check ends and then sent with the attribution it found, if any. The returned flow emits `Loading` right away. An event whose collecting coroutine is cancelled while it is held (e.g. its `viewModelScope` is cleared) is not sent.
+- If the app goes to the background first, held events are sent right away, since the app may be killed. Events collected in the background aren't held.
+- Events collected when no check is in progress are sent right away, with whatever attribution is already stored.
+- `checkDeferredLink` and `createPixelEvent` can be called from any thread.
+
+Disclose this clipboard access and the attribution data in your privacy policy and in the Google Play Data safety form.
 
 For every api request, you have to get the EnvoyApi with `EnvoyApiProviderImpl.provide`. Also, every request should be called from a `CoroutineScope` (the below examples are all called from a `viewModelScope`, but you can change that to your needs). The user id should be replaced by your user's id.
 
@@ -181,7 +224,7 @@ viewModelScope.launch {
 
 ### Get pixel event
 
-Log a pixel event
+Log a pixel event. The SDK adds the install attribution (`share_link_hash`, `lead_uuid`) stored by `checkDeferredLink` (see [Check deferred link](#check-deferred-link-required-for-install-attribution)) when the event is sent, replacing any values set in the body.
 
 ```kotlin
 data class CreatePixelEventBody(

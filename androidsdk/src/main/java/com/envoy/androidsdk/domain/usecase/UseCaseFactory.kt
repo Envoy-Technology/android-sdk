@@ -1,7 +1,7 @@
 package com.envoy.androidsdk.domain.usecase
 
+import com.envoy.androidsdk.deferredlink.DeferredLinkCoordinator
 import com.envoy.androidsdk.domain.EnvoyRepository
-import com.envoy.androidsdk.domain.shared.HawkRepository
 
 internal class UseCaseFactory(private val repository: EnvoyRepository) {
 
@@ -22,8 +22,8 @@ internal class UseCaseFactory(private val repository: EnvoyRepository) {
         return getUserQuotaUseCase
     }
 
-    fun getCreatePixelEventUseCase(hawkRepository: HawkRepository): CreatePixelEventUseCase {
-        return CreatePixelEventUseCaseImpl(repository, hawkRepository)
+    fun getCreatePixelEventUseCase(deferredLinks: DeferredLinkCoordinator): CreatePixelEventUseCase {
+        return CreatePixelEventUseCaseImpl(repository, deferredLinks)
     }
 
     fun getUserRewardsUseCase(): GetUserRewardsUseCase {

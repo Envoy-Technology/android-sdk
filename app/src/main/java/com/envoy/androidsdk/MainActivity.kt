@@ -48,6 +48,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
+        EnvoyApiProviderImpl.init(
+            apiKey = BuildConfig.API_KEY,
+            context = applicationContext
+        )
+        EnvoyApiProviderImpl.provide().checkDeferredLink { found ->
+            Log.d(TAG, "Deferred link found: $found")
+        }
+
         viewModel = MainViewModel()
 
         // Initialize screenshot detector
@@ -68,10 +76,6 @@ class MainActivity : ComponentActivity() {
                         .safeDrawingPadding(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    EnvoyApiProviderImpl.init(
-                        apiKey = BuildConfig.API_KEY,
-                        context = applicationContext
-                    )
                     Greeting(data = viewModel.getButtonsState())
                 }
             }
