@@ -135,6 +135,7 @@ class MainViewModel : ViewModel() {
                         ),
                         videoOrientation = VideoOrientation.VERTICAL
                     ),
+                    extra = mapOf("articleId" to "16208949"),
                     sharerId = USER_ID
                 )
             ).collect { resource ->
@@ -181,7 +182,8 @@ class MainViewModel : ViewModel() {
         viewModelScope.launch {
             EnvoyApiProviderImpl.provide().createPixelEvent(
                 body = CreatePixelEventBody(
-                    eventName = pixelEvent ?: "androidCustomEvent"
+                    eventName = pixelEvent ?: "androidCustomEvent",
+                    extra = mapOf("campaign" to "spring")
                 )
             ).collect { resource ->
                 when (resource) {
