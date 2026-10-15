@@ -103,7 +103,7 @@ data class CreateLinkBody(
     @SerializedName("content_setting") val contentSetting: ContentSetting,
     @SerializedName("lifespan_after_click") val lifespanClick: LifespanClick? = null,
     @SerializedName("open_quota") val openQuota: Int? = null,
-    @SerializedName("extra") val extra: String? = null,
+    @SerializedName("extra") val extra: Map<String, String>? = null,
     @SerializedName("title") val title: String? = null,
     @SerializedName("sharer_id") val sharerId: String,
     @SerializedName("is_sandbox") val isSandbox: Boolean = false,
@@ -231,13 +231,8 @@ data class CreatePixelEventBody(
     @SerializedName("event_name") val eventName: String,
     @SerializedName("lead_uuid") val leadUuid: String? = null,
     @SerializedName("sharerUserId") val sharerUserId: String? = null,
-    @SerializedName("extra") val extra: ExtraPixel? = null,
+    @SerializedName("extra") val extra: Map<String, String>? = null,
     @SerializedName("share_link_hash") var shareLinkHash: String? = null
-)
-
-data class ExtraPixel(
-    @SerializedName("campaign") val campaign: String,
-    @SerializedName("userType") val userType: String
 )
 
 enum class EventName {
