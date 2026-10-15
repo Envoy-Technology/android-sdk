@@ -14,7 +14,7 @@ data class CreatePixelEventBody(
     @SerializedName("event_name") val eventName: String,
     @SerializedName("lead_uuid") var leadUuid: String? = null,
     @SerializedName("sharer_user_id") val sharerUserId: String? = null,
-    @SerializedName("extra") val extra: String? = null,
+    @SerializedName("extra") val extra: Map<String, String>? = null,
     @SerializedName("share_link_hash") var shareLinkHash: String? = null
 )
 
