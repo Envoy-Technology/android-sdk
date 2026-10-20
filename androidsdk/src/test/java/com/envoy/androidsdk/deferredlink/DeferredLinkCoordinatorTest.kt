@@ -1,6 +1,6 @@
 package com.envoy.androidsdk.deferredlink
 
-import com.envoy.androidsdk.domain.shared.HawkRepository
+import com.envoy.androidsdk.domain.shared.SdkStorage
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -329,7 +329,7 @@ private class FakeClipboard : DeferredLinkClipboard {
     }
 }
 
-private class FakeStorage : HawkRepository {
+private class FakeStorage : SdkStorage {
     var storedHash: String? = null
     var storedLeadUuid: String? = null
     var checkDone: Boolean? = null

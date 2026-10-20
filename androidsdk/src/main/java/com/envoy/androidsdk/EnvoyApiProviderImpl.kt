@@ -7,7 +7,7 @@ import com.envoy.androidsdk.api.EnvoyApi
 import com.envoy.androidsdk.api.EnvoyApiProvider
 import com.envoy.androidsdk.data.EnvoyRepositoryImpl
 import com.envoy.androidsdk.data.EnvoyServiceApi
-import com.envoy.androidsdk.data.HawkRepositoryImpl
+import com.envoy.androidsdk.data.SharedPreferencesStorage
 import com.envoy.androidsdk.data.network.RetrofitFactory
 import com.envoy.androidsdk.data.network.RetrofitFactoryImpl
 import com.envoy.androidsdk.data.network.model.SdkConfig
@@ -16,11 +16,9 @@ import com.envoy.androidsdk.deferredlink.AndroidMainThread
 import com.envoy.androidsdk.deferredlink.DeferredLinkCoordinator
 import com.envoy.androidsdk.deferredlink.SystemDeferredLinkClipboard
 import com.envoy.androidsdk.domain.EnvoyRepository
-import com.envoy.androidsdk.domain.shared.HawkRepository
 import com.envoy.androidsdk.domain.shared.InitException
+import com.envoy.androidsdk.domain.shared.SdkStorage
 import com.envoy.androidsdk.domain.usecase.UseCaseFactory
-import com.orhanobut.hawk.DefaultHawkFacade
-import com.orhanobut.hawk.Hawk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.coroutines.CoroutineContext
 
@@ -34,7 +32,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     private lateinit var coroutineContext: CoroutineContext
     private lateinit var repository: EnvoyRepository
     private lateinit var useCaseFactory: UseCaseFactory
-    private lateinit var hawkRepository: HawkRepository
+    private lateinit var storage: SdkStorage
     private lateinit var deferredLinks: DeferredLinkCoordinator
 
     private val isInitialized = MutableStateFlow(false)
@@ -67,17 +65,14 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
 
             useCaseFactory = UseCaseFactory(repository)
 
-            val builder = Hawk.init(context)
-            hawkRepository = HawkRepositoryImpl(
-                DefaultHawkFacade(builder)
-            )
+            storage = SharedPreferencesStorage(context)
 
             // The clipboard is read only by EnvoyApi.checkDeferredLink, so the host app decides when.
             val application = context.applicationContext as Application
             val mainThread = AndroidMainThread()
             deferredLinks = DeferredLinkCoordinator(
                 clipboard = SystemDeferredLinkClipboard(application),
-                storage = hawkRepository,
+                storage = storage,
                 appState = AndroidAppState(application, mainThread),
                 mainThread = mainThread,
                 installTimeMillis = { firstInstallTime(application) }
