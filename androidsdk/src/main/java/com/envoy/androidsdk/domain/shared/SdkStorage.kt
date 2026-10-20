@@ -1,6 +1,6 @@
 package com.envoy.androidsdk.domain.shared
 
-interface HawkRepository {
+interface SdkStorage {
     fun getHash(): String?
 
     fun setHash(hash: String)

@@ -26,7 +26,7 @@ In the app module's build.gradle, besides whatever other dependencies you alread
 
 ```gradle
 dependencies {
-    implementation("com.github.Envoy-Technology:android-sdk:1.0.11") // replace "1.0.11" with the version you want to include
+    implementation("com.github.Envoy-Technology:android-sdk:1.0.12") // replace "1.0.12" with the version you want to include
 }
 ```
 

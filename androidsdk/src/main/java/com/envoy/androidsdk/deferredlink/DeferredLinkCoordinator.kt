@@ -1,6 +1,6 @@
 package com.envoy.androidsdk.deferredlink
 
-import com.envoy.androidsdk.domain.shared.HawkRepository
+import com.envoy.androidsdk.domain.shared.SdkStorage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
@@ -19,7 +19,7 @@ private const val ONE_DAY_MILLIS = 24 * 60 * 60 * 1000L
  */
 internal class DeferredLinkCoordinator(
     private val clipboard: DeferredLinkClipboard,
-    private val storage: HawkRepository,
+    private val storage: SdkStorage,
     private val appState: AppState,
     private val mainThread: MainThread,
     private val installTimeMillis: () -> Long?,
