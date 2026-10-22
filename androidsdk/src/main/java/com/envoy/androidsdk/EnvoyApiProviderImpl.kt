@@ -19,6 +19,7 @@ import com.envoy.androidsdk.domain.EnvoyRepository
 import com.envoy.androidsdk.domain.shared.InitException
 import com.envoy.androidsdk.domain.shared.SdkStorage
 import com.envoy.androidsdk.domain.usecase.UseCaseFactory
+import com.envoy.androidsdk.screenshot.AndroidImageLoader
 import com.envoy.androidsdk.screenshot.FlowLinkCreator
 import com.envoy.androidsdk.screenshot.ScreenshotSharingController
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +38,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     private lateinit var storage: SdkStorage
     private lateinit var deferredLinks: DeferredLinkCoordinator
     private lateinit var mainThread: AndroidMainThread
+    private lateinit var application: Application
 
     private val isInitialized = MutableStateFlow(false)
 
@@ -71,7 +73,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
             storage = SharedPreferencesStorage(context)
 
             // The clipboard is read only by EnvoyApi.checkDeferredLink, so the host app decides when.
-            val application = context.applicationContext as Application
+            application = context.applicationContext as Application
             mainThread = AndroidMainThread()
             deferredLinks = DeferredLinkCoordinator(
                 clipboard = SystemDeferredLinkClipboard(application),
@@ -107,6 +109,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                 deferredLinks = deferredLinks,
                 screenshotSharing = ScreenshotSharingController(
                     linkCreator = FlowLinkCreator(createLink = { createLinkUseCase(it) }, mainThread = mainThread),
+                    imageLoader = AndroidImageLoader(application, mainThread),
                     log = { Log.w(TAG, it) }
                 )
             )

@@ -12,15 +12,26 @@ internal interface ScreenCapture {
     fun register(onCaptured: () -> Unit): (() -> Unit)?
 }
 
+/** What the share sheet shows: [text] is shared, [title] and [imageUri] only preview it. */
+internal data class ShareContent(val text: String, val title: String?, val imageUri: String?)
+
 /** The system share sheet, opened from one activity. */
 internal interface ShareSheet {
     /** Returns false when it can't be opened. */
-    fun open(text: String, title: String?): Boolean
+    fun open(content: ShareContent): Boolean
 }
 
 internal interface LinkCreator {
     /** Calls [onResult] on the main thread, unless the returned function is called first. */
     fun createLink(body: CreateLinkBody, onResult: (Result<CreateLinkResponse>) -> Unit): () -> Unit
+}
+
+internal interface ImageLoader {
+    /**
+     * Calls [onResult] on the main thread with a URI the share sheet can read the image from,
+     * or null when it can't be loaded in time; unless the returned function is called first.
+     */
+    fun load(url: String, onResult: (String?) -> Unit): () -> Unit
 }
 
 /**
@@ -29,6 +40,7 @@ internal interface LinkCreator {
  */
 internal class ScreenshotSharingController(
     private val linkCreator: LinkCreator,
+    private val imageLoader: ImageLoader? = null,
     private val log: (String) -> Unit = {}
 ) {
 
@@ -44,15 +56,15 @@ internal class ScreenshotSharingController(
 
         internal var unregisterCapture: (() -> Unit)? = null
         internal var isResumed = false
-        internal var cancelLink: (() -> Unit)? = null
+        internal var preparation: Preparation? = null
         /** The link is ready and the share sheet opens once the screen is resumed. */
-        internal var pendingShare: Pair<String, String?>? = null
+        internal var pendingShare: ShareContent? = null
         /** The share sheet is open; cleared when the screen is resumed again. */
         internal var isSharing = false
 
         /** From the screenshot until the user is back from the share sheet; screenshots meanwhile are ignored. */
         internal val isBusy: Boolean
-            get() = cancelLink != null || pendingShare != null || isSharing
+            get() = preparation != null || pendingShare != null || isSharing
 
         fun onStarted() {
             if (this !== current || unregisterCapture != null) return
@@ -64,9 +76,9 @@ internal class ScreenshotSharingController(
             if (this !== current) return
             isResumed = true
             isSharing = false
-            pendingShare?.let { (text, title) ->
+            pendingShare?.let {
                 pendingShare = null
-                open(this, text, title)
+                open(this, it)
             }
         }
 
@@ -79,8 +91,8 @@ internal class ScreenshotSharingController(
             isResumed = false
             unregisterCapture?.invoke()
             unregisterCapture = null
-            cancelLink?.invoke()
-            cancelLink = null
+            preparation?.cancel()
+            preparation = null
             pendingShare = null
             isSharing = false
         }
@@ -112,14 +124,48 @@ internal class ScreenshotSharingController(
         current?.end()
     }
 
+    /** From the screenshot until both the link and the preview image are ready. */
+    internal class Preparation(val share: ScreenshotShare) {
+        var link: CreateLinkResponse? = null
+        var isImageLoaded = false
+        var imageUri: String? = null
+        var cancelLink: (() -> Unit)? = null
+        var cancelImage: (() -> Unit)? = null
+
+        fun cancel() {
+            cancelLink?.invoke()
+            cancelLink = null
+            cancelImage?.invoke()
+            cancelImage = null
+        }
+    }
+
     private fun onScreenshot(session: Session) {
         if (session !== current || session.isBusy) return
         val share = session.share() ?: return
-        val title = share.body.contentSetting.name
+        val preparation = Preparation(share)
+        session.preparation = preparation
 
-        createdLinks[share.body]?.let { link ->
-            session.onEvent?.invoke(ScreenshotSharingEvent.LinkCreated(link))
-            present(session, link, share.message, title)
+        // Loaded together with the link; the share sheet opens without it if it isn't ready in time.
+        val setting = share.body.contentSetting
+        val imageUrl = setting.previewImage ?: setting.commonData?.poster
+        if (imageUrl.isNullOrEmpty() || imageLoader == null) {
+            preparation.isImageLoaded = true
+        } else {
+            val cancel = imageLoader.load(imageUrl) { uri ->
+                preparation.isImageLoaded = true
+                preparation.imageUri = uri
+                preparation.cancelImage = null
+                presentIfReady(session, preparation)
+            }
+            if (!preparation.isImageLoaded) preparation.cancelImage = cancel
+        }
+
+        val cachedLink = createdLinks[share.body]
+        if (cachedLink != null) {
+            preparation.link = cachedLink
+            session.onEvent?.invoke(ScreenshotSharingEvent.LinkCreated(cachedLink))
+            presentIfReady(session, preparation)
             return
         }
 
@@ -127,38 +173,51 @@ internal class ScreenshotSharingController(
         var finished = false
         val cancel = linkCreator.createLink(share.body) { result ->
             finished = true
-            session.cancelLink = null
-            if (session !== current) return@createLink
+            preparation.cancelLink = null
+            if (session !== current || session.preparation !== preparation) return@createLink
             val link = result.getOrNull()
             when {
-                link == null -> session.onEvent?.invoke(
-                    ScreenshotSharingEvent.Failed(result.exceptionOrNull() ?: IllegalStateException("No link"))
-                )
-                link.url.isNullOrEmpty() -> session.onEvent?.invoke(
-                    ScreenshotSharingEvent.Failed(IllegalStateException("The created link has no url"))
-                )
+                link == null -> fail(session, preparation, result.exceptionOrNull() ?: IllegalStateException("No link"))
+                link.url.isNullOrEmpty() -> fail(session, preparation, IllegalStateException("The created link has no url"))
                 else -> {
                     createdLinks[share.body] = link
+                    preparation.link = link
                     session.onEvent?.invoke(ScreenshotSharingEvent.LinkCreated(link))
-                    present(session, link, share.message, title)
+                    presentIfReady(session, preparation)
                 }
             }
         }
-        if (!finished) session.cancelLink = cancel
+        if (!finished) preparation.cancelLink = cancel
     }
 
-    private fun present(session: Session, link: CreateLinkResponse, message: String?, title: String?) {
-        val text = listOfNotNull(message, link.url).joinToString("\n")
+    private fun fail(session: Session, preparation: Preparation, throwable: Throwable) {
+        preparation.cancel()
+        session.preparation = null
+        session.onEvent?.invoke(ScreenshotSharingEvent.Failed(throwable))
+    }
+
+    private fun presentIfReady(session: Session, preparation: Preparation) {
+        if (session !== current || session.preparation !== preparation) return
+        val link = preparation.link ?: return
+        if (!preparation.isImageLoaded) return
+        session.preparation = null
+
+        val share = preparation.share
+        val content = ShareContent(
+            text = listOfNotNull(share.message, link.url).joinToString("\n"),
+            title = share.body.contentSetting.name,
+            imageUri = preparation.imageUri
+        )
         if (session.isResumed) {
-            open(session, text, title)
+            open(session, content)
         } else {
             // The system screenshot UI can pause the activity; the share sheet opens once it's back.
-            session.pendingShare = text to title
+            session.pendingShare = content
         }
     }
 
-    private fun open(session: Session, text: String, title: String?) {
-        if (session.shareSheet.open(text, title)) {
+    private fun open(session: Session, content: ShareContent) {
+        if (session.shareSheet.open(content)) {
             session.isSharing = true
             session.onEvent?.invoke(ScreenshotSharingEvent.ShareSheetOpened)
         } else {

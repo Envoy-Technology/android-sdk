@@ -227,6 +227,7 @@ class ArticleActivity : ComponentActivity() {
 In a fragment, pass its activity and `viewLifecycleOwner`: `startScreenshotSharing(requireActivity(), viewLifecycleOwner) { ... }`.
 
 - The lambda is called on each screenshot and can return any `CreateLinkBody`. `forArticle` sends the article URL as the content source and its id in `extra` as `articleId`. With `SCREENSHOT` the gift landing shows a screenshot of the page, rendered by Envoy from the URL; with `HTML_SOURCE` it shows the page itself.
+- The share sheet previews the text with the body's title and its `previewImage` (the `imageUrl` of `forArticle`), loaded together with the link (the thumbnail needs Android 10+). If the image isn't loaded within 2 seconds, the share sheet opens without it. Only the message and the link are shared; email apps use the title as the subject. The image is kept in the app's cache directory and served by the SDK's own `FileProvider`.
 - Screenshots taken while the link is being created, or before the user is back from the share sheet, are ignored. A later screenshot of the same body reuses the link created earlier in the app session.
 - If the link can't be created, no share sheet is shown. When the screen stops, a link still being created is dropped.
 - Needs Android 14 or later; on earlier versions it does nothing.

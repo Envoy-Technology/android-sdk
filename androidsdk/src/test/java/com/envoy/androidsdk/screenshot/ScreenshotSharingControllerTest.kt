@@ -8,6 +8,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 private const val LINK = "https://envoy.is/l/abc"
+private const val IMAGE = "https://news.example/image.jpg"
+private const val IMAGE_URI = "content://app.envoy.fileprovider/envoy_share/image.jpg"
 
 class ScreenshotSharingControllerTest {
 
@@ -15,16 +17,18 @@ class ScreenshotSharingControllerTest {
     private val screenCapture = FakeScreenCapture()
     private val shareSheet = FakeShareSheet()
     private val events = mutableListOf<String>()
-    private val controller = ScreenshotSharingController(linkCreator)
+    private val imageLoader = FakeImageLoader()
+    private val controller = ScreenshotSharingController(linkCreator, imageLoader)
 
-    private fun share(id: String = "article-1") = ScreenshotShare(
+    private fun share(id: String = "article-1", imageUrl: String? = null) = ScreenshotShare(
         body = CreateLinkBody.forArticle(
             url = "https://news.example/$id",
             id = id,
             title = "Title",
             description = "Description",
             sharerId = "sharer-1",
-            contentType = ContentType.SCREENSHOT
+            contentType = ContentType.SCREENSHOT,
+            imageUrl = imageUrl
         ),
         message = "Read it free"
     )
@@ -60,7 +64,7 @@ class ScreenshotSharingControllerTest {
         linkCreator.finish()
 
         assertEquals(listOf("creatingLink", "linkCreated $LINK", "shareSheetOpened"), events)
-        assertEquals(listOf("Read it free\n$LINK" to "Title"), shareSheet.opened)
+        assertEquals(listOf(ShareContent("Read it free\n$LINK", "Title", imageUri = null)), shareSheet.opened)
     }
 
     @Test
@@ -82,7 +86,7 @@ class ScreenshotSharingControllerTest {
         screenCapture.takeScreenshot()
         linkCreator.finish()
 
-        assertEquals(LINK, shareSheet.opened.single().first)
+        assertEquals(LINK, shareSheet.opened.single().text)
     }
 
     @Test
@@ -126,6 +130,110 @@ class ScreenshotSharingControllerTest {
         screenCapture.takeScreenshot()
 
         assertEquals(2, linkCreator.bodies.size)
+    }
+
+    // Preview image
+
+    @Test
+    fun withoutImageUrlNoImageIsLoaded() {
+        start()
+
+        screenCapture.takeScreenshot()
+        linkCreator.finish()
+
+        assertTrue(imageLoader.urls.isEmpty())
+        assertEquals(1, shareSheet.opened.size)
+    }
+
+    @Test
+    fun articleImageIsLoadedTogetherWithTheLinkAndPreviewed() {
+        start(share(imageUrl = IMAGE))
+
+        screenCapture.takeScreenshot()
+        assertEquals(listOf(IMAGE), imageLoader.urls)
+
+        linkCreator.finish()
+        assertTrue(shareSheet.opened.isEmpty())
+
+        imageLoader.finish(IMAGE_URI)
+        assertEquals(IMAGE_URI, shareSheet.opened.single().imageUri)
+        assertEquals("Read it free\n$LINK", shareSheet.opened.single().text)
+    }
+
+    @Test
+    fun imageReadyBeforeTheLinkWaitsForIt() {
+        start(share(imageUrl = IMAGE))
+
+        screenCapture.takeScreenshot()
+        imageLoader.finish(IMAGE_URI)
+        assertTrue(shareSheet.opened.isEmpty())
+
+        linkCreator.finish()
+        assertEquals(IMAGE_URI, shareSheet.opened.single().imageUri)
+    }
+
+    @Test
+    fun imageNotLoadedOpensShareSheetWithoutIt() {
+        start(share(imageUrl = IMAGE))
+
+        screenCapture.takeScreenshot()
+        linkCreator.finish()
+        imageLoader.finish(null)
+
+        assertEquals(null, shareSheet.opened.single().imageUri)
+    }
+
+    @Test
+    fun screenshotsWhileLoadingTheImageAreIgnored() {
+        start(share(imageUrl = IMAGE))
+        screenCapture.takeScreenshot()
+        linkCreator.finish()
+
+        screenCapture.takeScreenshot()
+
+        assertEquals(1, imageLoader.urls.size)
+        assertEquals(1, linkCreator.bodies.size)
+    }
+
+    @Test
+    fun failedLinkDropsTheImage() {
+        start(share(imageUrl = IMAGE))
+        screenCapture.takeScreenshot()
+
+        linkCreator.finish(Result.failure(Throwable("Offline")))
+
+        assertEquals(1, imageLoader.cancelled)
+        assertTrue(shareSheet.opened.isEmpty())
+    }
+
+    @Test
+    fun stopWhileLoadingTheImageDropsIt() {
+        start(share(imageUrl = IMAGE))
+        screenCapture.takeScreenshot()
+        linkCreator.finish()
+
+        controller.stop()
+
+        assertEquals(1, imageLoader.cancelled)
+        assertTrue(shareSheet.opened.isEmpty())
+    }
+
+    @Test
+    fun reusedLinkStillPreviewsTheImage() {
+        start(share(imageUrl = IMAGE))
+        screenCapture.takeScreenshot()
+        linkCreator.finish()
+        imageLoader.finish(IMAGE_URI)
+
+        controller.stop()
+        start(share(imageUrl = IMAGE))
+        screenCapture.takeScreenshot()
+        assertEquals(1, shareSheet.opened.size)
+
+        imageLoader.finish(IMAGE_URI)
+
+        assertEquals(1, linkCreator.bodies.size)
+        assertEquals(listOf(IMAGE_URI, IMAGE_URI), shareSheet.opened.map { it.imageUri })
     }
 
     // Turning it on and off
@@ -328,13 +436,32 @@ private class FakeScreenCapture : ScreenCapture {
     }
 }
 
+private class FakeImageLoader : ImageLoader {
+    val urls = mutableListOf<String>()
+    var cancelled = 0
+    private val pending = mutableListOf<(String?) -> Unit>()
+
+    override fun load(url: String, onResult: (String?) -> Unit): () -> Unit {
+        urls += url
+        pending += onResult
+        return {
+            cancelled++
+            pending.remove(onResult)
+        }
+    }
+
+    fun finish(uri: String?) {
+        pending.removeAt(0)(uri)
+    }
+}
+
 private class FakeShareSheet : ShareSheet {
     var canOpen = true
-    val opened = mutableListOf<Pair<String, String?>>()
+    val opened = mutableListOf<ShareContent>()
 
-    override fun open(text: String, title: String?): Boolean {
+    override fun open(content: ShareContent): Boolean {
         if (!canOpen) return false
-        opened += text to title
+        opened += content
         return true
     }
 }
