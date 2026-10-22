@@ -19,6 +19,8 @@ import com.envoy.androidsdk.domain.EnvoyRepository
 import com.envoy.androidsdk.domain.shared.InitException
 import com.envoy.androidsdk.domain.shared.SdkStorage
 import com.envoy.androidsdk.domain.usecase.UseCaseFactory
+import com.envoy.androidsdk.screenshot.FlowLinkCreator
+import com.envoy.androidsdk.screenshot.ScreenshotSharingController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.coroutines.CoroutineContext
 
@@ -34,6 +36,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     private lateinit var useCaseFactory: UseCaseFactory
     private lateinit var storage: SdkStorage
     private lateinit var deferredLinks: DeferredLinkCoordinator
+    private lateinit var mainThread: AndroidMainThread
 
     private val isInitialized = MutableStateFlow(false)
 
@@ -69,7 +72,7 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
 
             // The clipboard is read only by EnvoyApi.checkDeferredLink, so the host app decides when.
             val application = context.applicationContext as Application
-            val mainThread = AndroidMainThread()
+            mainThread = AndroidMainThread()
             deferredLinks = DeferredLinkCoordinator(
                 clipboard = SystemDeferredLinkClipboard(application),
                 storage = storage,
@@ -90,8 +93,9 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
         }
 
         return if (envoyApi == null) {
+            val createLinkUseCase = useCaseFactory.getCreateLinkUseCase()
             envoyApi = EnvoyApiImpl(
-                createLinkUseCase = useCaseFactory.getCreateLinkUseCase(),
+                createLinkUseCase = createLinkUseCase,
                 getUserQuotaUseCase = useCaseFactory.getUserQuotaUseCase(),
                 createPixelEventUseCase = useCaseFactory.getCreatePixelEventUseCase(deferredLinks),
                 getUserRewardsUseCase = useCaseFactory.getUserRewardsUseCase(),
@@ -100,7 +104,11 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
                 prepLinkUseCase = useCaseFactory.prepLinkUseCase(),
                 manageLinksUseCase = useCaseFactory.getManageLinksUseCase(),
                 clearManagedLinksUseCase = useCaseFactory.getClearManagedLinksUseCase(),
-                deferredLinks = deferredLinks
+                deferredLinks = deferredLinks,
+                screenshotSharing = ScreenshotSharingController(
+                    linkCreator = FlowLinkCreator(createLink = { createLinkUseCase(it) }, mainThread = mainThread),
+                    log = { Log.w(TAG, it) }
+                )
             )
             envoyApi as EnvoyApi
         } else {

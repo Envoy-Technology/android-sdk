@@ -23,7 +23,40 @@ data class CreateLinkBody(
     @SerializedName("is_sandbox") val isSandbox: Boolean = false,
     @SerializedName("labels") val labels: List<Label>? = null,
     @SerializedName("is_carousel_link") val isCarouselLink: Boolean = false
-)
+) {
+    companion object {
+        /**
+         * A link to the article at [url]. With [ContentType.SCREENSHOT] the gift landing shows a screenshot
+         * of the page, which Envoy renders from [url]; with [ContentType.HTML_SOURCE] it shows the page itself.
+         * [id] is sent in [extra] as "articleId", next to [extra]; [title], [description] and [imageUrl]
+         * also make the link preview in messaging apps.
+         */
+        fun forArticle(
+            url: String,
+            id: String,
+            title: String,
+            description: String,
+            sharerId: String,
+            contentType: ContentType,
+            imageUrl: String? = null,
+            extra: Map<String, String> = emptyMap(),
+            isSandbox: Boolean = false
+        ): CreateLinkBody = CreateLinkBody(
+            contentSetting = ContentSetting(
+                type = contentType,
+                name = title,
+                description = description,
+                commonData = CommonData(source = url, isRedirect = false, poster = imageUrl),
+                previewTitle = title,
+                previewDescription = description,
+                previewImage = imageUrl
+            ),
+            extra = extra + ("articleId" to id),
+            sharerId = sharerId,
+            isSandbox = isSandbox
+        )
+    }
+}
 
 /**
  * @param type Type of the content (see ContentType)

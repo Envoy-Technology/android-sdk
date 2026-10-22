@@ -1,5 +1,7 @@
 package com.envoy.androidsdk
 
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.LifecycleOwner
 import com.envoy.androidsdk.api.EnvoyApi
 import com.envoy.androidsdk.deferredlink.DeferredLinkCoordinator
 import com.envoy.androidsdk.domain.model.ClaimUserRewardBody
@@ -22,6 +24,12 @@ import com.envoy.androidsdk.domain.usecase.GetUserRewardsUseCase
 import com.envoy.androidsdk.domain.usecase.GetCurrentRewardsUseCase
 import com.envoy.androidsdk.domain.usecase.ManageLinksUseCase
 import com.envoy.androidsdk.domain.usecase.PrepLinkUseCase
+import com.envoy.androidsdk.screenshot.AndroidScreenCapture
+import com.envoy.androidsdk.screenshot.AndroidShareSheet
+import com.envoy.androidsdk.screenshot.ScreenshotShare
+import com.envoy.androidsdk.screenshot.ScreenshotSharingController
+import com.envoy.androidsdk.screenshot.ScreenshotSharingEvent
+import com.envoy.androidsdk.screenshot.ScreenshotSharingLifecycleObserver
 import kotlinx.coroutines.flow.Flow
 
 internal class EnvoyApiImpl(
@@ -34,7 +42,8 @@ internal class EnvoyApiImpl(
     private val prepLinkUseCase: PrepLinkUseCase,
     private val manageLinksUseCase: ManageLinksUseCase,
     private val clearManagedLinksUseCase: ClearManagedLinksUseCase,
-    private val deferredLinks: DeferredLinkCoordinator
+    private val deferredLinks: DeferredLinkCoordinator,
+    private val screenshotSharing: ScreenshotSharingController
 ) : EnvoyApi {
 
     override fun checkDeferredLink(onResult: ((found: Boolean) -> Unit)?) {
@@ -77,5 +86,27 @@ internal class EnvoyApiImpl(
 
     override fun clearManagedLinks(): Flow<Resource<Unit>> {
         return clearManagedLinksUseCase.invoke()
+    }
+
+    override fun startScreenshotSharing(
+        activity: ComponentActivity,
+        lifecycleOwner: LifecycleOwner,
+        onEvent: ((ScreenshotSharingEvent) -> Unit)?,
+        share: () -> ScreenshotShare?
+    ) {
+        val session = screenshotSharing.start(
+            screenCapture = AndroidScreenCapture(activity),
+            shareSheet = AndroidShareSheet(activity),
+            onEvent = onEvent,
+            share = share
+        )
+        val observer = ScreenshotSharingLifecycleObserver(session)
+        session.detach = { lifecycleOwner.lifecycle.removeObserver(observer) }
+        // Catches up with the current state, e.g. starts right away for a resumed screen.
+        lifecycleOwner.lifecycle.addObserver(observer)
+    }
+
+    override fun stopScreenshotSharing() {
+        screenshotSharing.stop()
     }
 }
