@@ -26,7 +26,7 @@ In the app module's build.gradle, besides whatever other dependencies you alread
 
 ```gradle
 dependencies {
-    implementation("com.github.Envoy-Technology:android-sdk:1.0.12") // replace "1.0.12" with the version you want to include
+    implementation("com.github.Envoy-Technology:android-sdk:1.0.13") // replace "1.0.13" with the version you want to include
 }
 ```
 
@@ -36,7 +36,10 @@ The following permission is used in the Envoy library. You should include them i
 
 ```
 <uses-permission android:name="android.permission.INTERNET" />
+<uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
 ```
+
+`DETECT_SCREEN_CAPTURE` is used by screenshot sharing. It is granted at install without a prompt and only tells the app that a screenshot was taken, not its image.
 
 
 ## Usage example
@@ -195,6 +198,42 @@ viewModelScope.launch {
             }
         }
 ```
+
+### Share a link when the user takes a screenshot
+When the user takes a screenshot of a screen with screenshot sharing turned on, the SDK creates that screen's link and opens the system share sheet with it, so the user shares a gift link instead of the image. Turn it on only on screens that show shareable content, such as an article. It stays on while the screen is started and turns off when it's destroyed:
+
+```kotlin
+class ArticleActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        EnvoyApiProviderImpl.provide().startScreenshotSharing(activity = this) {
+            ScreenshotShare(           // return null to ignore the screenshot
+                body = CreateLinkBody.forArticle(
+                    url = article.url,
+                    id = article.id,
+                    title = article.title,
+                    description = article.lead,
+                    sharerId = user.id,
+                    contentType = ContentType.SCREENSHOT,  // or ContentType.HTML_SOURCE
+                    imageUrl = article.imageUrl
+                ),
+                message = "Your friend wants to gift you this article"
+            )
+        }
+    }
+}
+```
+
+In a fragment, pass its activity and `viewLifecycleOwner`: `startScreenshotSharing(requireActivity(), viewLifecycleOwner) { ... }`.
+
+- The lambda is called on each screenshot and can return any `CreateLinkBody`. `forArticle` sends the article URL as the content source and its id in `extra` as `articleId`. With `SCREENSHOT` the gift landing shows a screenshot of the page, rendered by Envoy from the URL; with `HTML_SOURCE` it shows the page itself.
+- The share sheet previews the text with the body's title and its `previewImage` (the `imageUrl` of `forArticle`), loaded together with the link (the thumbnail needs Android 10+). If the image isn't loaded within 2 seconds, the share sheet opens without it. Only the message and the link are shared; email apps use the title as the subject. The image is kept in the app's cache directory and served by the SDK's own `FileProvider`.
+- Screenshots taken while the link is being created, or before the user is back from the share sheet, are ignored. A later screenshot of the same body reuses the link created earlier in the app session.
+- If the link can't be created, no share sheet is shown. When the screen stops, a link still being created is dropped.
+- Needs Android 14 or later; on earlier versions it does nothing.
+- Pass `onEvent` to follow the progress: `CreatingLink`, `LinkCreated`, `ShareSheetOpened` or `Failed`.
+
+> **Upgrading from 1.0.12 or earlier:** `ScreenshotDetector`, `ScreenshotLinkHelper` and `Bitmap.toBase64` are removed, together with the need for `READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE`. Use `startScreenshotSharing`.
 
 ### Get user quota
 

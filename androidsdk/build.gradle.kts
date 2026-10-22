@@ -49,6 +49,8 @@ dependencies {
     implementation("com.google.android.material:material:1.14.0")
     // App foreground/background state for the deferred-link check
     implementation("androidx.lifecycle:lifecycle-process:2.10.0")
+    // ComponentActivity and LifecycleOwner in the screenshot sharing API
+    api("androidx.activity:activity:1.8.0")
 
     // retrofit
     implementation("com.squareup.retrofit2:retrofit:3.0.0")
