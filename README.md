@@ -1,40 +1,42 @@
 <a name="introduction"></a>
 # Overview
 
-Envoy Android SDK aimed to deliver a fast solution to share content out of your Android Application.
+Envoy Android SDK lets users of your Android app share your content as gift links.
 
 ## Add Envoy SDK to Your Application
 
 ### Requirements
-* minSdkVersion: 26 (Android 8.0)
-* compileSdkVersion: 34 (Android 13)
+* minSdk: 26 (Android 8.0)
+* compileSdk: 37 or later
 
 ### Integration
 
-In your project's settings.gradle, add the code snipet below:
-```gradle
+The SDK is published on JitPack. In your project's `settings.gradle.kts`, add the JitPack repository:
+
+```kotlin
 dependencyResolutionManagement {
-		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-		repositories {
-			mavenCentral()
-			maven { url 'https://jitpack.io' }
-		}
-	}
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
 ```
 
-In the app module's build.gradle, besides whatever other dependencies you already have, include such an "implementation" line:
+In the app module's `build.gradle.kts`, add the dependency:
 
-```gradle
+```kotlin
 dependencies {
-    implementation("com.github.Envoy-Technology:android-sdk:1.0.13") // replace "1.0.13" with the version you want to include
+    implementation("com.github.Envoy-Technology:android-sdk:1.0.14") // replace "1.0.14" with the version you want to include
 }
 ```
 
 ### Android manifest
 
-The following permission is used in the Envoy library. You should include them in the Android manifest:
+The SDK declares the permissions it uses in its own manifest, which is merged into your app's, so you don't need to add them:
 
-```
+```xml
 <uses-permission android:name="android.permission.INTERNET" />
 <uses-permission android:name="android.permission.DETECT_SCREEN_CAPTURE" />
 ```
@@ -43,12 +45,12 @@ The following permission is used in the Envoy library. You should include them i
 
 
 ## Usage example
-To initialize the library, you should call the init() method. You can get your project api key from [account settings](https://dev-platform.envoy.is/dashboard/account/).
+To initialize the library, call `init`, e.g. in `Application.onCreate`. You can find your API key in the Security tab of [account settings](https://dashboard.envoy.is/dashboard/account/).
 ```kotlin
 EnvoyApiProviderImpl.init(
-                        apiKey = "api_key",
-                        context = applicationContext
-                    )
+    apiKey = "api_key",
+    context = applicationContext
+)
 ```
 
 ### Check deferred link (required for install attribution)
@@ -98,105 +100,107 @@ For every api request, you have to get the EnvoyApi with `EnvoyApiProviderImpl.p
 
 ### Create link
 
-Request is pretty flexible and have both required and optional values.
+`CreateLinkBody` describes the content to share. Only the parameters without default values are required. For an article, `CreateLinkBody.forArticle` builds it for you (see [Share a link when the user takes a screenshot](#share-a-link-when-the-user-takes-a-screenshot)).
 
 ```kotlin
 data class CreateLinkBody(
-    @SerializedName("autoplay") val autoPlay: Boolean = false,
-    @SerializedName("content_setting") val contentSetting: ContentSetting,
-    @SerializedName("lifespan_after_click") val lifespanClick: LifespanClick? = null,
-    @SerializedName("open_quota") val openQuota: Int? = null,
-    @SerializedName("extra") val extra: Map<String, String>? = null,
-    @SerializedName("title") val title: String? = null,
-    @SerializedName("sharer_id") val sharerId: String,
-    @SerializedName("is_sandbox") val isSandbox: Boolean = false,
-    @SerializedName("labels") val labels: List<Label>? = null,
-    @SerializedName("is_carousel_link") val isCarouselLink: Boolean = false
+    val autoPlay: Boolean = false,
+    val contentSetting: ContentSetting,
+    val lifespanClick: LifespanClick? = null,
+    val openQuota: Int? = null,
+    val extra: Map<String, String>? = null,
+    val sharerId: String,
+    val isSandbox: Boolean = false,
+    val labels: List<Label>? = null,
+    val isCarouselLink: Boolean = false
 )
 
 data class ContentSetting(
-    @SerializedName("content_type") val type: ContentType,
-    @SerializedName("content_name") val name: String,
-    @SerializedName("content_description") val description: String,
-    @SerializedName("common") val commonData: CommonData,
-    @SerializedName("time_limit") val timeLimit: Int? = null,
-    @SerializedName("time_start") val timeStart: Int? = null,
-    @SerializedName("available_from") val availableFrom: String? = null,
-    @SerializedName("available_to") val availableTo: String? = null,
-    @SerializedName("video_orientation") val videoOrientation: VideoOrientation,
-    @SerializedName("preview_title") val previewTitle: String? = null,
-    @SerializedName("preview_description") val previewOrientation: String? = null,
-    @SerializedName("preview_image") val previewImage: String? = null,
-    @SerializedName("is_sandbox") val isSandbox: Boolean = false,
-    @SerializedName("mandatory_email") val isEmailMandatory: Boolean = false,
-    @SerializedName("modal_title") val modalTitle: String? = null,
-    @SerializedName("button_text") val buttonText: String? = null,
-    @SerializedName("content_protection") val contentProtection: Media? = null
+    val type: ContentType,
+    val name: String,
+    val description: String,
+    val commonData: CommonData? = null,
+    val base64File: String? = null,
+    val timeLimit: Int? = null,
+    val timeStart: Int? = null,
+    val availableFrom: String? = null,
+    val availableTo: String? = null,
+    val videoOrientation: VideoOrientation? = null,
+    val previewTitle: String? = null,
+    val previewDescription: String? = null,
+    val previewImage: String? = null,
+    val isEmailMandatory: Boolean? = false,
+    val modalTitle: String? = null,
+    val buttonText: String? = null,
+    val contentProtection: Media? = null
 )
 
 data class CommonData(
-    @SerializedName("source") val source: String?,
-    @SerializedName("source_is_redirect") val isRedirect: Boolean,
-    @SerializedName("poster") val poster: String?
+    val source: String,
+    val isRedirect: Boolean?,
+    val poster: String?
 )
 
 data class LifespanClick(
-    @SerializedName("value") val value: Int?,
-    @SerializedName("unit") val unit: String?
+    val value: Int?,
+    val unit: String?
 )
 
 data class Label(
-    @SerializedName("id") val value: Int?,
-    @SerializedName("text") val text: String?,
-    @SerializedName("color") val color: String?
+    val value: Int?,  // the label id
+    val text: String,
+    val color: String
 )
 
 data class Media(
-    @SerializedName("media") val mediaData: CommonData
+    val mediaData: CommonData,
+    val drmPlayer: DrmPlayer,
+    val player: String  // widevine, fairPlay or playerReady
 )
 
-enum class ContentType {
-    VIDEO,
-    AUDIO,
-    HTML_PLAIN,
-    HTML_SOURCE,
-    SCREENSHOT
-}
+data class DrmPlayer(
+    val serverName: String,
+    val serverCertificate: String
+)
+
+enum class ContentType { VIDEO, AUDIO, HTML_PLAIN, HTML_SOURCE, SCREENSHOT }
+
+enum class VideoOrientation { VERTICAL, HORIZONTAL }
 ```
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().createLink(
-                body = CreateLinkBody(
-                    contentSetting = ContentSetting(
-                        type = ContentType.VIDEO,
-                        name = "Content name",
-                        description = "content description",
-                        commonData = CommonData(
-                            source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-                            isRedirect = false,
-                            poster = "https://envoy-misc.s3.eu-west-2.amazonaws.com/73ac27c5-dbbb-4ead-903b-d8382039bb2b_d365cfb1-94b6-4de7-a97b-55cb99768149.jpg"
-                        ),
-                        videoOrientation = VideoOrientation.vertical
-                    ),
-                    sharerId = "user_id"
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Link: Success -> ${resource.value}")
-                    }
+    EnvoyApiProviderImpl.provide().createLink(
+        body = CreateLinkBody(
+            contentSetting = ContentSetting(
+                type = ContentType.VIDEO,
+                name = "Content name",
+                description = "content description",
+                commonData = CommonData(
+                    source = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+                    isRedirect = false,
+                    poster = "https://envoy-misc.s3.eu-west-2.amazonaws.com/73ac27c5-dbbb-4ead-903b-d8382039bb2b_d365cfb1-94b6-4de7-a97b-55cb99768149.jpg"
+                ),
+                videoOrientation = VideoOrientation.VERTICAL
+            ),
+            sharerId = "user_id"
+        )
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "Link: Success -> ${resource.value}")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "Link: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "Link: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "Link: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
 ### Share a link when the user takes a screenshot
@@ -241,37 +245,39 @@ Get target user sharing quota.
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().getUserQuota(
-                userId = "user_id"
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "User quota: Success -> ${resource.value}")
-                    }
+    EnvoyApiProviderImpl.provide().getUserQuota(
+        userId = "user_id"
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "User quota: Success -> ${resource.value}")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "User quota: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "User quota: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "User quota: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "User quota: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
-### Get pixel event
+### Log pixel event
 
 Log a pixel event. The SDK adds the install attribution (`share_link_hash`, `lead_uuid`) stored by `checkDeferredLink` (see [Check deferred link](#check-deferred-link-required-for-install-attribution)) when the event is sent, replacing any values set in the body.
 
+`eventName` is one of the `EventName` values below, or a custom event name.
+
 ```kotlin
 data class CreatePixelEventBody(
-    @SerializedName("event_name") val eventName: String,
-    @SerializedName("lead_uuid") val leadUuid: String? = null,
-    @SerializedName("sharerUserId") val sharerUserId: String? = null,
-    @SerializedName("extra") val extra: Map<String, String>? = null,
-    @SerializedName("share_link_hash") var shareLinkHash: String? = null
+    val eventName: String,
+    var leadUuid: String? = null,
+    val sharerUserId: String? = null,
+    val extra: Map<String, String>? = null,
+    var shareLinkHash: String? = null
 )
 
 enum class EventName {
@@ -284,26 +290,26 @@ enum class EventName {
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().createPixelEvent(
-                body = CreatePixelEventBody(
-                    eventName = EventName.app_downloaded.name
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Pixel Event: Success -> ${resource.value}")
-                    }
+    EnvoyApiProviderImpl.provide().createPixelEvent(
+        body = CreatePixelEventBody(
+            eventName = EventName.app_downloaded.name
+        )
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "Pixel Event: Success -> ${resource.value}")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "Pixel Event: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "Pixel Event: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "Pixel Event: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "Pixel Event: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
 ### Get user reward
@@ -312,50 +318,50 @@ Get rewards for a specific user
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().getUserReward(
-                userId = "user_id"
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "User rewards: Success -> ${resource.value}")
-                    }
+    EnvoyApiProviderImpl.provide().getUserReward(
+        userId = "user_id"
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "User rewards: Success -> ${resource.value}")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "User rewards: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "User rewards: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "User rewards: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "User rewards: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
 ### Claim user reward
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().claimUserReward(
-                body = ClaimUserRewardBody(
-                    userId = "user_id"
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Claim user reward: Success -> ${resource.value}")
-                    }
+    EnvoyApiProviderImpl.provide().claimUserReward(
+        body = ClaimUserRewardBody(
+            userId = "user_id"
+        )
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "Claim user reward: Success -> ${resource.value}")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "Claim user reward: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "Claim user reward: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "Claim user reward: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "Claim user reward: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
 ### Get current user reward
@@ -364,88 +370,85 @@ Get current rewards for a specific user
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().getUserCurrentRewards(
-                userId = "user_id"
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "User current rewards: Success -> ${resource.value}")
-                    }
-
-                    is Loading -> {
-                        Log.d(TAG, "User current rewards: Loading")
-                    }
-
-                    is Failure -> {
-                        Log.d(TAG, "User current rewards: Failure -> ${resource.throwable.message}")
-                    }
-
-                    else -> {
-                        Log.d(TAG, "User current rewards: null")
-                    }
-                }
+    EnvoyApiProviderImpl.provide().getUserCurrentRewards(
+        userId = "user_id"
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "User current rewards: Success -> ${resource.value}")
             }
+
+            is Loading -> {
+                Log.d(TAG, "User current rewards: Loading")
+            }
+
+            is Failure -> {
+                Log.d(TAG, "User current rewards: Failure -> ${resource.throwable.message}")
+            }
+
         }
+    }
+}
 ```
 
 ### Prepare link
 
-Prepare link's content before it's gifted. Function specific for SCREENSHOT types of links.
+Prepare the content at a URL before it's gifted. Only for links with the `SCREENSHOT` content type.
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().prepLink(
-                url = "url"
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Prep link: Success -> ${resource.value}")
-                    }
+    EnvoyApiProviderImpl.provide().prepLink(
+        body = PrepLinkRequest(url = "https://example.com/article")
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "Prep link: Success -> ${resource.value}")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "Prep link: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "Prep link: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "Prep link: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "Prep link: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
 ### Manage links
 
-Reset current carousel link selection and select the links identified by the provided hashes.
+Reset the current carousel link selection and select the given links. Each entry is a share link URL, as returned by `createLink`, or its hash.
 
 ```kotlin
 data class ManageLinksRequest(
-    val linkHashes: List<String>
+    val links: List<String>
 )
 ```
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().manageLinks(
-                body = ManageLinksRequest(
-                    linkHashes = listOf("aBc123", "xYz789")
-                )
-            ).collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Manage links: Success")
-                    }
+    EnvoyApiProviderImpl.provide().manageLinks(
+        body = ManageLinksRequest(
+            links = listOf("aBc123", "xYz789")
+        )
+    ).collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "Manage links: Success")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "Manage links: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "Manage links: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "Manage links: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "Manage links: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
 ### Clear managed links
@@ -454,21 +457,21 @@ Unselect all marketing links from the API links carousel.
 
 ```kotlin
 viewModelScope.launch {
-            EnvoyApiProviderImpl.provide().clearManagedLinks().collect { resource ->
-                when (resource) {
-                    is Success -> {
-                        Log.d(TAG, "Clear managed links: Success")
-                    }
+    EnvoyApiProviderImpl.provide().clearManagedLinks().collect { resource ->
+        when (resource) {
+            is Success -> {
+                Log.d(TAG, "Clear managed links: Success")
+            }
 
-                    is Loading -> {
-                        Log.d(TAG, "Clear managed links: Loading")
-                    }
+            is Loading -> {
+                Log.d(TAG, "Clear managed links: Loading")
+            }
 
-                    is Failure -> {
-                        Log.d(TAG, "Clear managed links: Failure -> ${resource.throwable.message}")
-                    }
-                }
+            is Failure -> {
+                Log.d(TAG, "Clear managed links: Failure -> ${resource.throwable.message}")
             }
         }
+    }
+}
 ```
 
