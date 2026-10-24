@@ -49,9 +49,6 @@ object EnvoyApiProviderImpl : EnvoyApiProvider {
     ) {
         if (!isInitialized.value) {
             val sdkConfig = SdkConfig(
-                // for testing
-//                baseUrl = "https://dev-api.envoy.is/partner/",
-                // for release
                 baseUrl = "https://api.envoy.is/partner/",
                 apiKey = apiKey
             )
