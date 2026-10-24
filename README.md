@@ -28,7 +28,7 @@ In the app module's `build.gradle.kts`, add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("com.github.Envoy-Technology:android-sdk:1.0.13") // replace "1.0.13" with the version you want to include
+    implementation("com.github.Envoy-Technology:android-sdk:1.0.14") // replace "1.0.14" with the version you want to include
 }
 ```
 
