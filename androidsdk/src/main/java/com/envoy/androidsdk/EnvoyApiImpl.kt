@@ -27,6 +27,7 @@ import com.envoy.androidsdk.domain.usecase.PrepLinkUseCase
 import com.envoy.androidsdk.screenshot.AndroidScreenCapture
 import com.envoy.androidsdk.screenshot.AndroidShareSheet
 import com.envoy.androidsdk.screenshot.ScreenshotShare
+import com.envoy.androidsdk.screenshot.ScreenshotSharePrompt
 import com.envoy.androidsdk.screenshot.ScreenshotSharingController
 import com.envoy.androidsdk.screenshot.ScreenshotSharingEvent
 import com.envoy.androidsdk.screenshot.ScreenshotSharingLifecycleObserver
@@ -92,12 +93,14 @@ internal class EnvoyApiImpl(
         activity: ComponentActivity,
         lifecycleOwner: LifecycleOwner,
         onEvent: ((ScreenshotSharingEvent) -> Unit)?,
+        beforeSharing: ((ScreenshotSharePrompt) -> Unit)?,
         share: () -> ScreenshotShare?
     ) {
         val session = screenshotSharing.start(
             screenCapture = AndroidScreenCapture(activity),
             shareSheet = AndroidShareSheet(activity),
             onEvent = onEvent,
+            beforeSharing = beforeSharing,
             share = share
         )
         val observer = ScreenshotSharingLifecycleObserver(session)

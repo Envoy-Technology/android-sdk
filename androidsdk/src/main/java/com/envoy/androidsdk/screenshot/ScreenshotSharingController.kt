@@ -49,6 +49,7 @@ internal class ScreenshotSharingController(
         val screenCapture: ScreenCapture,
         val shareSheet: ShareSheet,
         val onEvent: ((ScreenshotSharingEvent) -> Unit)?,
+        val beforeSharing: ((ScreenshotSharePrompt) -> Unit)?,
         val share: () -> ScreenshotShare?
     ) {
         /** Set by whoever drives the lifecycle; called when the session ends. */
@@ -56,6 +57,8 @@ internal class ScreenshotSharingController(
 
         internal var unregisterCapture: (() -> Unit)? = null
         internal var isResumed = false
+        /** Your screen is shown; kept while the screen is stopped, e.g. when the user leaves the app meanwhile. */
+        internal var prompt: ScreenshotSharePrompt? = null
         internal var preparation: Preparation? = null
         /** The link is ready and the share sheet opens once the screen is resumed. */
         internal var pendingShare: ShareContent? = null
@@ -64,7 +67,7 @@ internal class ScreenshotSharingController(
 
         /** From the screenshot until the user is back from the share sheet; screenshots meanwhile are ignored. */
         internal val isBusy: Boolean
-            get() = preparation != null || pendingShare != null || isSharing
+            get() = prompt != null || preparation != null || pendingShare != null || isSharing
 
         fun onStarted() {
             if (this !== current || unregisterCapture != null) return
@@ -99,6 +102,7 @@ internal class ScreenshotSharingController(
 
         fun end() {
             onStopped()
+            prompt = null
             if (current === this) current = null
             detach?.invoke()
             detach = null
@@ -114,10 +118,11 @@ internal class ScreenshotSharingController(
         screenCapture: ScreenCapture,
         shareSheet: ShareSheet,
         onEvent: ((ScreenshotSharingEvent) -> Unit)?,
+        beforeSharing: ((ScreenshotSharePrompt) -> Unit)? = null,
         share: () -> ScreenshotShare?
     ): Session {
         stop()
-        return Session(screenCapture, shareSheet, onEvent, share).also { current = it }
+        return Session(screenCapture, shareSheet, onEvent, beforeSharing, share).also { current = it }
     }
 
     fun stop() {
@@ -143,6 +148,21 @@ internal class ScreenshotSharingController(
     private fun onScreenshot(session: Session) {
         if (session !== current || session.isBusy) return
         val share = session.share() ?: return
+        val beforeSharing = session.beforeSharing
+        if (beforeSharing == null) {
+            prepare(session, share)
+            return
+        }
+        val prompt = ScreenshotSharePrompt(share) { prompt, accepted ->
+            if (session !== current || session.prompt !== prompt) return@ScreenshotSharePrompt
+            session.prompt = null
+            if (accepted) prepare(session, prompt.content)
+        }
+        session.prompt = prompt
+        beforeSharing(prompt)
+    }
+
+    private fun prepare(session: Session, share: ScreenshotShare) {
         val preparation = Preparation(share)
         session.preparation = preparation
 

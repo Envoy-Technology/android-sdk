@@ -43,6 +43,21 @@ class ScreenshotSharingControllerTest {
             onResumed()
         }
 
+    private val prompts = mutableListOf<ScreenshotSharePrompt>()
+
+    /** A resumed screen that shows its own screen before sharing; prompts are collected in [prompts]. */
+    private fun startWithPrompt(share: ScreenshotShare? = share()): ScreenshotSharingController.Session =
+        controller.start(
+            screenCapture,
+            shareSheet,
+            onEvent = { events += it.label() },
+            beforeSharing = { prompts += it },
+            share = { share }
+        ).apply {
+            onStarted()
+            onResumed()
+        }
+
     private fun ScreenshotSharingEvent.label() = when (this) {
         ScreenshotSharingEvent.CreatingLink -> "creatingLink"
         is ScreenshotSharingEvent.LinkCreated -> "linkCreated ${response.url}"
@@ -360,6 +375,106 @@ class ScreenshotSharingControllerTest {
 
         shareSheet.canOpen = true
         screenCapture.takeScreenshot()
+
+        assertEquals(1, shareSheet.opened.size)
+    }
+
+    // Your own screen before sharing
+
+    @Test
+    fun withBeforeSharingScreenshotShowsThePromptAndCreatesNoLink() {
+        startWithPrompt(share(imageUrl = IMAGE))
+
+        screenCapture.takeScreenshot()
+
+        assertEquals(share(imageUrl = IMAGE), prompts.single().content)
+        assertTrue(linkCreator.bodies.isEmpty())
+        assertTrue(imageLoader.urls.isEmpty())
+        assertTrue(events.isEmpty())
+    }
+
+    @Test
+    fun promptShareCreatesTheLinkThenOpensShareSheet() {
+        startWithPrompt()
+        screenCapture.takeScreenshot()
+
+        prompts.single().share()
+        assertEquals(listOf("creatingLink"), events)
+
+        linkCreator.finish()
+
+        assertEquals(listOf("creatingLink", "linkCreated $LINK", "shareSheetOpened"), events)
+        assertEquals(listOf(ShareContent("Read it free\n$LINK", "Title", imageUri = null)), shareSheet.opened)
+    }
+
+    @Test
+    fun promptCancelCreatesNoLinkAndNextScreenshotShowsAnotherPrompt() {
+        startWithPrompt()
+        screenCapture.takeScreenshot()
+
+        prompts.single().cancel()
+        prompts.single().share()
+        screenCapture.takeScreenshot()
+
+        assertTrue(linkCreator.bodies.isEmpty())
+        assertTrue(shareSheet.opened.isEmpty())
+        assertEquals(2, prompts.size)
+    }
+
+    @Test
+    fun screenshotsWhileThePromptIsShownAreIgnored() {
+        startWithPrompt()
+
+        screenCapture.takeScreenshot()
+        screenCapture.takeScreenshot()
+
+        assertEquals(1, prompts.size)
+    }
+
+    @Test
+    fun promptSharedTwiceCreatesOneLink() {
+        startWithPrompt()
+        screenCapture.takeScreenshot()
+
+        prompts.single().share()
+        prompts.single().share()
+
+        assertEquals(1, linkCreator.bodies.size)
+    }
+
+    @Test
+    fun promptSharedAfterTheScreenEndedDoesNothing() {
+        startWithPrompt()
+        screenCapture.takeScreenshot()
+
+        controller.stop()
+        prompts.single().share()
+
+        assertTrue(linkCreator.bodies.isEmpty())
+    }
+
+    @Test
+    fun promptSharedAfterAnotherScreenStartedDoesNothing() {
+        startWithPrompt()
+        screenCapture.takeScreenshot()
+
+        start(share("article-2"))
+        prompts.single().share()
+
+        assertTrue(linkCreator.bodies.isEmpty())
+    }
+
+    @Test
+    fun promptSurvivesLeavingTheAppAndSharesOnReturn() {
+        val session = startWithPrompt()
+        screenCapture.takeScreenshot()
+
+        session.onPaused()
+        session.onStopped()
+        session.onStarted()
+        session.onResumed()
+        prompts.single().share()
+        linkCreator.finish()
 
         assertEquals(1, shareSheet.opened.size)
     }
