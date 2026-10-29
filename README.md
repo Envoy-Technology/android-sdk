@@ -237,7 +237,31 @@ In a fragment, pass its activity and `viewLifecycleOwner`: `startScreenshotShari
 - Needs Android 14 or later; on earlier versions it does nothing.
 - Pass `onEvent` to follow the progress: `CreatingLink`, `LinkCreated`, `ShareSheetOpened` or `Failed`.
 
+#### Show your own screen before sharing
+To show your own screen first, e.g. a "Send a gift" dialog, pass `beforeSharing`. After the lambda returns a `ScreenshotShare`, `beforeSharing` is called with a `ScreenshotSharePrompt` instead of creating the link. Nothing is created until you call `prompt.share()`, so a screen closed without sharing uses none of the user's quota:
+
+```kotlin
+EnvoyApiProviderImpl.provide().startScreenshotSharing(
+    activity = this,
+    beforeSharing = { prompt ->
+        GiftDialog(
+            title = prompt.content.body.contentSetting.name,
+            onSend = { prompt.share() },     // creates the link, then opens the share sheet
+            onDismiss = { prompt.cancel() }  // nothing is shared or created
+        ).show(supportFragmentManager, "gift")
+    }
+) {
+    screenshotShare()
+}
+```
+
+- Screenshots are ignored until `share()` or `cancel()` is called, so always call one of them when your screen closes. Only the first call counts.
+- Show it on the same activity, e.g. as a dialog, a bottom sheet or a Compose overlay. The prompt is dropped when the screen is destroyed or `stopScreenshotSharing` is called; it's kept while the user leaves the app and comes back.
+- `onEvent` reports nothing while your screen is shown. After `share()` it follows the flow above, starting with `CreatingLink`.
+
 > **Upgrading from 1.0.12 or earlier:** `ScreenshotDetector`, `ScreenshotLinkHelper` and `Bitmap.toBase64` are removed, together with the need for `READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE`. Use `startScreenshotSharing`.
+
+> **Upgrading from 1.0.14 or earlier:** `EnvoyApi.startScreenshotSharing` has a new `beforeSharing` parameter. Calls don't change, but classes that implement `EnvoyApi`, such as test doubles or wrappers, must add it.
 
 ### Get user quota
 

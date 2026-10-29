@@ -14,6 +14,7 @@ import com.envoy.androidsdk.domain.model.UserCurrentRewardsResponse
 import com.envoy.androidsdk.domain.model.UserQuotaResponse
 import com.envoy.androidsdk.domain.shared.Resource
 import com.envoy.androidsdk.screenshot.ScreenshotShare
+import com.envoy.androidsdk.screenshot.ScreenshotSharePrompt
 import com.envoy.androidsdk.screenshot.ScreenshotSharingEvent
 import kotlinx.coroutines.flow.Flow
 
@@ -60,13 +61,17 @@ interface EnvoyApi {
      * Screenshots taken while a link is being created, or before the user is back from the share sheet, are ignored.
      * When the screen stops, a link still being created is dropped; when it's destroyed, sharing is turned off.
      * Calling it again, from any screen, replaces the earlier screen.
+     * To show your own screen first, pass [beforeSharing]: it's called after [share], with a prompt, and nothing
+     * is created until you call `prompt.share()`, so a closed screen uses no quota. Call `prompt.cancel()` when
+     * the user closes it; screenshots are ignored until either is called.
      * Needs Android 14 or later, and no permission to read the screen; on earlier versions it does nothing.
-     * Call it on the main thread; [share] and [onEvent] are called on the main thread.
+     * Call it on the main thread; [share], [beforeSharing] and [onEvent] are called on the main thread.
      */
     fun startScreenshotSharing(
         activity: ComponentActivity,
         lifecycleOwner: LifecycleOwner = activity,
         onEvent: ((ScreenshotSharingEvent) -> Unit)? = null,
+        beforeSharing: ((ScreenshotSharePrompt) -> Unit)? = null,
         share: () -> ScreenshotShare?
     )
 
