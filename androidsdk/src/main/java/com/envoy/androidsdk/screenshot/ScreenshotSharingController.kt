@@ -102,6 +102,7 @@ internal class ScreenshotSharingController(
 
         fun end() {
             onStopped()
+            prompt?.invalidate()
             prompt = null
             if (current === this) current = null
             detach?.invoke()

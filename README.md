@@ -28,7 +28,7 @@ In the app module's `build.gradle.kts`, add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("com.github.Envoy-Technology:android-sdk:1.0.15") // replace "1.0.15" with the version you want to include
+    implementation("com.github.Envoy-Technology:android-sdk:1.0.16") // replace "1.0.16" with the version you want to include
 }
 ```
 
@@ -257,7 +257,8 @@ EnvoyApiProviderImpl.provide().startScreenshotSharing(
 
 - Screenshots are ignored until `share()` or `cancel()` is called, so always call one of them when your screen closes. Only the first call counts.
 - Show it on the same activity, e.g. as a dialog, a bottom sheet or a Compose overlay. The prompt is dropped when the screen is destroyed or `stopScreenshotSharing` is called; it's kept while the user leaves the app and comes back.
-- `onEvent` reports nothing while your screen is shown. After `share()` it follows the flow above, starting with `CreatingLink`.
+- A dropped prompt does nothing: `share()` and `cancel()` return `false`, and `prompt.isActive` is `false`. Check the result to tell the user that nothing was shared.
+- `onEvent` reports nothing while your screen is shown. After `share()` it follows the flow above, starting with `CreatingLink`, or with `LinkCreated` when a link created earlier in the app session is reused.
 
 > **Upgrading from 1.0.12 or earlier:** `ScreenshotDetector`, `ScreenshotLinkHelper` and `Bitmap.toBase64` are removed, together with the need for `READ_MEDIA_IMAGES` / `READ_EXTERNAL_STORAGE`. Use `startScreenshotSharing`.
 
