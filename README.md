@@ -28,9 +28,11 @@ In the app module's `build.gradle.kts`, add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("com.github.Envoy-Technology:android-sdk:1.0.16") // replace "1.0.16" with the version you want to include
+    implementation("com.github.Envoy-Technology:envoy-android-sdk:1.1.0") // replace "1.1.0" with the version you want to include
 }
 ```
+
+> **Upgrading from 1.0.16 or earlier:** the repository was renamed from `android-sdk` to `envoy-android-sdk`, so the dependency is now `com.github.Envoy-Technology:envoy-android-sdk`. Versions up to 1.0.16 stay available as `com.github.Envoy-Technology:android-sdk`. Nothing else changes: the package is still `com.envoy.androidsdk`.
 
 ### Android manifest
 
