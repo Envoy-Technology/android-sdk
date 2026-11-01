@@ -75,7 +75,10 @@ interface EnvoyApi {
         share: () -> ScreenshotShare?
     )
 
-    /** Turns screenshot sharing off before the screen is destroyed. Main thread only. */
+    /**
+     * Turns screenshot sharing off before the screen is destroyed. Main thread only.
+     * A prompt still shown is dropped; its `share()` returns false.
+     */
     fun stopScreenshotSharing()
 }
 

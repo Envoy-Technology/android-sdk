@@ -22,20 +22,39 @@ data class ScreenshotShare(
  */
 class ScreenshotSharePrompt internal constructor(
     val content: ScreenshotShare,
-    private val onResolved: (ScreenshotSharePrompt, share: Boolean) -> Unit
+    onResolved: (ScreenshotSharePrompt, share: Boolean) -> Unit
 ) {
-    private var isResolved = false
+    private var onResolved: ((ScreenshotSharePrompt, Boolean) -> Unit)? = onResolved
 
-    /** Creates the link and opens the system share sheet with it. Only the first [share] or [cancel] counts. */
-    fun share() = resolve(share = true)
+    /**
+     * False once [share] or [cancel] was called, or once the screen stopped screenshot sharing,
+     * e.g. because it was destroyed; [share] and [cancel] then do nothing.
+     */
+    val isActive: Boolean
+        get() = onResolved != null
 
-    /** Nothing is shared and no link is created. Call it when your screen is closed without sharing. */
-    fun cancel() = resolve(share = false)
+    /**
+     * Creates the link and opens the system share sheet with it. Only the first [share] or [cancel] counts.
+     * Returns false when the prompt isn't active, so nothing is shared.
+     */
+    fun share(): Boolean = resolve(share = true)
 
-    private fun resolve(share: Boolean) {
-        if (isResolved) return
-        isResolved = true
+    /**
+     * Nothing is shared and no link is created. Call it when your screen is closed without sharing.
+     * Returns false when the prompt isn't active.
+     */
+    fun cancel(): Boolean = resolve(share = false)
+
+    /** The screen stopped screenshot sharing; [share] and [cancel] do nothing from now on. */
+    internal fun invalidate() {
+        onResolved = null
+    }
+
+    private fun resolve(share: Boolean): Boolean {
+        val onResolved = onResolved ?: return false
+        this.onResolved = null
         onResolved(this, share)
+        return true
     }
 }
 

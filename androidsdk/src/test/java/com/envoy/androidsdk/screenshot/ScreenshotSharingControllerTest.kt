@@ -4,6 +4,7 @@ import com.envoy.androidsdk.domain.model.ContentType
 import com.envoy.androidsdk.domain.model.CreateLinkBody
 import com.envoy.androidsdk.domain.model.CreateLinkResponse
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -436,8 +437,8 @@ class ScreenshotSharingControllerTest {
         startWithPrompt()
         screenCapture.takeScreenshot()
 
-        prompts.single().share()
-        prompts.single().share()
+        assertTrue(prompts.single().share())
+        assertFalse(prompts.single().share())
 
         assertEquals(1, linkCreator.bodies.size)
     }
@@ -448,8 +449,9 @@ class ScreenshotSharingControllerTest {
         screenCapture.takeScreenshot()
 
         controller.stop()
-        prompts.single().share()
 
+        assertFalse(prompts.single().isActive)
+        assertFalse(prompts.single().share())
         assertTrue(linkCreator.bodies.isEmpty())
     }
 
@@ -459,9 +461,40 @@ class ScreenshotSharingControllerTest {
         screenCapture.takeScreenshot()
 
         start(share("article-2"))
-        prompts.single().share()
 
+        assertFalse(prompts.single().isActive)
+        assertFalse(prompts.single().share())
         assertTrue(linkCreator.bodies.isEmpty())
+    }
+
+    @Test
+    fun promptIsActiveUntilAnswered() {
+        startWithPrompt()
+        screenCapture.takeScreenshot()
+        assertTrue(prompts.single().isActive)
+
+        assertTrue(prompts.single().cancel())
+
+        assertFalse(prompts.single().isActive)
+        assertFalse(prompts.single().cancel())
+    }
+
+    @Test
+    fun promptShareWithLinkCreatedEarlierStartsWithLinkCreated() {
+        val session = startWithPrompt()
+        screenCapture.takeScreenshot()
+        prompts[0].share()
+        linkCreator.finish()
+        session.onPaused()
+        session.onResumed()
+        events.clear()
+        screenCapture.takeScreenshot()
+
+        prompts[1].share()
+
+        assertEquals(listOf("linkCreated $LINK", "shareSheetOpened"), events)
+        assertEquals(1, linkCreator.bodies.size)
+        assertEquals(2, shareSheet.opened.size)
     }
 
     @Test
