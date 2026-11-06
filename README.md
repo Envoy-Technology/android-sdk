@@ -28,7 +28,7 @@ In the app module's `build.gradle.kts`, add the dependency:
 
 ```kotlin
 dependencies {
-    implementation("com.github.Envoy-Technology:envoy-android-sdk:1.1.0") // replace "1.1.0" with the version you want to include
+    implementation("com.github.Envoy-Technology:envoy-android-sdk:1.2.0") // replace "1.2.0" with the version you want to include
 }
 ```
 
@@ -134,7 +134,7 @@ data class ContentSetting(
     val isEmailMandatory: Boolean? = false,
     val modalTitle: String? = null,
     val buttonText: String? = null,
-    val contentProtection: Media? = null
+    val contentProtection: ContentProtection? = null  // DRM, see below
 )
 
 data class CommonData(
@@ -154,15 +154,21 @@ data class Label(
     val color: String
 )
 
-data class Media(
-    val mediaData: CommonData,
-    val drmPlayer: DrmPlayer,
-    val player: String  // widevine, fairPlay or playerReady
+data class ContentProtection(
+    val sources: Map<String, String>? = null,  // manifest per key system (KeySystem.*)
+    val drm: DrmConfig? = null,                // Shaka Player's DRM configuration
+    val fairPlayProvider: FairPlayProvider? = null
 )
 
-data class DrmPlayer(
-    val serverName: String,
-    val serverCertificate: String
+data class DrmConfig(
+    val servers: Map<String, String>,          // license server URL per key system
+    val advanced: Map<String, AdvancedDrmConfig>? = null
+)
+
+data class AdvancedDrmConfig(
+    val serverCertificate: String? = null,     // base64
+    val serverCertificateUri: String? = null,
+    val headers: Map<String, String>? = null   // added to license requests
 )
 
 enum class ContentType { VIDEO, AUDIO, HTML_PLAIN, HTML_SOURCE, SCREENSHOT }
@@ -203,6 +209,26 @@ viewModelScope.launch {
         }
     }
 }
+```
+
+#### DRM-protected content
+
+For DRM-protected video or audio, pass a `ContentProtection`: the gift landing plays it with Shaka Player, and `drm` is Shaka Player's DRM configuration. See [DRM-protected content](https://docs.envoy.is/guides/drm/).
+
+```kotlin
+contentProtection = ContentProtection(
+    sources = mapOf(KeySystem.FAIR_PLAY to "https://cdn.example.com/stream.m3u8"),  // others play the common source (DASH)
+    drm = DrmConfig(
+        servers = mapOf(
+            KeySystem.WIDEVINE to "https://license.example.com/widevine",
+            KeySystem.FAIR_PLAY to "https://license.example.com/fairplay"
+        ),
+        advanced = mapOf(
+            KeySystem.WIDEVINE to AdvancedDrmConfig(headers = mapOf("x-drm-token" to "token"))
+        )
+    ),
+    fairPlayProvider = FairPlayProvider.EZDRM
+)
 ```
 
 ### Share a link when the user takes a screenshot
