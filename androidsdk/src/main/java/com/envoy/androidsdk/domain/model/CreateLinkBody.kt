@@ -74,7 +74,7 @@ data class CreateLinkBody(
  * @param isEmailMandatory Blocks the content until the user enters their email that creates a Lead. Leads can be seen in the Leads tab in the dashboard
  * @param modalTitle Title of the modal where the user enters the email
  * @param buttonText Text on the button in the popup
- * @param contentProtection Content Protections used on the common
+ * @param contentProtection DRM for the video or audio (see [ContentProtection])
  */
 
 data class ContentSetting(
@@ -94,7 +94,7 @@ data class ContentSetting(
     @SerializedName("mandatory_email") val isEmailMandatory: Boolean? = false,
     @SerializedName("modal_title") val modalTitle: String? = null,
     @SerializedName("button_text") val buttonText: String? = null,
-    @SerializedName("content_protection") val contentProtection: Media? = null
+    @SerializedName("content_protection") val contentProtection: ContentProtection? = null
 )
 
 /**
@@ -120,17 +120,62 @@ data class Label(
     @SerializedName("color") val color: String
 )
 
-data class Media(
-    @SerializedName("media") val mediaData: CommonData,
-    @SerializedName("drm_player") val drmPlayer: DrmPlayer,
-    // widevine | fairPlay | playerReady
-    @SerializedName("player") val player: String
+/**
+ * DRM for the link's video or audio, played on the gift landing by Shaka Player
+ * (see https://docs.envoy.is/guides/drm/). Needs [sources], [drm] or both.
+ *
+ * @param sources A manifest per key system ([KeySystem]), for browsers using that DRM system; others
+ * play the common source (e.g. common = DASH, sources = HLS for FairPlay)
+ * @param drm Shaka Player's DRM configuration
+ * @param fairPlayProvider The FairPlay license request format of your DRM provider; without it the raw SPC is sent
+ */
+data class ContentProtection(
+    @SerializedName("sources") val sources: Map<String, String>? = null,
+    @SerializedName("drm") val drm: DrmConfig? = null,
+    @SerializedName("fair_play_provider") val fairPlayProvider: FairPlayProvider? = null
 )
 
-data class DrmPlayer(
-    @SerializedName("server_name") val serverName: String,
-    @SerializedName("server_certificate") val serverCertificate: String
+/**
+ * Shaka Player's `drm` configuration.
+ *
+ * @param servers The license server URL per key system
+ * @param advanced Settings per key system
+ */
+data class DrmConfig(
+    @SerializedName("servers") val servers: Map<String, String>,
+    @SerializedName("advanced") val advanced: Map<String, AdvancedDrmConfig>? = null
 )
+
+/**
+ * Shaka Player's per-key-system `drm.advanced` settings, sent with Shaka's names.
+ *
+ * @param serverCertificate The server certificate, base64-encoded (FairPlay needs one, or [serverCertificateUri])
+ * @param serverCertificateUri A URL the player downloads the server certificate from
+ * @param headers Headers added to this key system's license requests
+ */
+data class AdvancedDrmConfig(
+    @SerializedName("serverCertificate") val serverCertificate: String? = null,
+    @SerializedName("serverCertificateUri") val serverCertificateUri: String? = null,
+    @SerializedName("headers") val headers: Map<String, String>? = null
+)
+
+/** Key system IDs, the keys of [ContentProtection.sources], [DrmConfig.servers] and [DrmConfig.advanced]. */
+object KeySystem {
+    const val WIDEVINE = "com.widevine.alpha"
+    const val PLAY_READY = "com.microsoft.playready"
+    const val FAIR_PLAY = "com.apple.fps"
+    const val CLEAR_KEY = "org.w3.clearkey"
+}
+
+/** Shaka Player's FairPlay presets. */
+enum class FairPlayProvider {
+    @SerializedName("verimatrix") VERIMATRIX,
+    @SerializedName("ezdrm") EZDRM,
+    @SerializedName("conax") CONAX,
+    @SerializedName("expressplay") EXPRESSPLAY,
+    @SerializedName("mux") MUX,
+    @SerializedName("gumlet") GUMLET
+}
 
 enum class ContentType {
     VIDEO,
